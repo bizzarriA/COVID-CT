@@ -25,7 +25,6 @@ if __name__ == '__main__':
     # Augment the on the fly during training.
     train_dataset = (
         train_loader  # .shuffle(len(x_train))
-            .map(train_preprocessing)
             # .repeat()
             .batch(batch_size, drop_remainder=True)
             .prefetch(2)
@@ -33,7 +32,6 @@ if __name__ == '__main__':
     # Only rescale.
     validation_dataset = (
         validation_loader.shuffle(len(x_val))
-            .map(validation_preprocessing)
             .batch(batch_size)
             .prefetch(2)
     )
