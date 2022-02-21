@@ -48,3 +48,4 @@ def plot_img(data):
         ax.imshow(image)
         ax.set_title('Class: {} ({})'.format(class_names[cls], cls))
     plt.show()
+

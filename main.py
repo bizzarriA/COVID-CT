@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from utils.segmentation import get_segmented_lungs
+from utils.segmentation import segment_cv2
 from utils.data import read_csv, plot_img
 from utils.model import get_model
 
@@ -19,6 +19,24 @@ if __name__ == '__main__':
     print(np.shape(x_train), np.shape(y_train))
     x_val = [cv2.imread(val_df["filename"][i], 0) for i in range(n_val)]
     y_val = tf.one_hot(val_df["label"][:n_val], 3)
+    train_loader = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    validation_loader = tf.data.Dataset.from_tensor_slices((x_val, y_val))
+    batch_size = 32
+    # Augment the on the fly during training.
+    train_dataset = (
+        train_loader  # .shuffle(len(x_train))
+            .map(train_preprocessing)
+            # .repeat()
+            .batch(batch_size, drop_remainder=True)
+            .prefetch(2)
+    )
+    # Only rescale.
+    validation_dataset = (
+        validation_loader.shuffle(len(x_val))
+            .map(validation_preprocessing)
+            .batch(batch_size)
+            .prefetch(2)
+    )
     model = get_model()
     model.summary()
 
