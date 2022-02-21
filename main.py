@@ -8,7 +8,7 @@ from utils.model import get_model
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    base_path = '/Users/alicebizzarri/Downloads/archive/'
+    base_path = 'dataset/'
     train_df, test_df, val_df = read_csv(base_path)
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
     print(n_train, n_val, n_test)
