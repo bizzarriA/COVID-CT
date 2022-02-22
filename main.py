@@ -13,15 +13,14 @@ if __name__ == '__main__':
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
     print(n_train, n_val, n_test)
     n_train, n_val, n_test = 10, 10, 10
-    x_train = [cv2.imread(train_df["filename"][i], 0) for i in range(n_train)]
-    x_train = np.expand_dims(x_train, axis=-1)
+    x_train = [cv2.imread(train_df["filename"][i], 1) for i in range(n_train)]
     y_train = tf.one_hot(train_df["label"][:n_train], 3)
     print(np.shape(x_train), np.shape(y_train))
     x_val = [cv2.imread(val_df["filename"][i], 0) for i in range(n_val)]
     y_val = tf.one_hot(val_df["label"][:n_val], 3)
     train_loader = tf.data.Dataset.from_tensor_slices((x_train, y_train))
     validation_loader = tf.data.Dataset.from_tensor_slices((x_val, y_val))
-    batch_size = 32
+    batch_size = 1
     # Augment the on the fly during training.
     train_dataset = (
         train_loader  # .shuffle(len(x_train))
@@ -51,7 +50,7 @@ if __name__ == '__main__':
         x_train, y_train,
         validation_data=(x_val, y_val),
         epochs=5,
-        batch_size=2,
+        batch_size=batch_size,
         shuffle=True,
         verbose=1
     )
