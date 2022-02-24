@@ -1,6 +1,8 @@
 import cv2
 import matplotlib.pyplot as plt
+import nibabel as nib
 import numpy as np
+import os
 import pandas as pd
 
 
@@ -22,8 +24,9 @@ def read_csv(base_path):
     train_df['filename'] = image_path + train_df['filename']
     val_df['filename'] = image_path + val_df['filename']
     test_df['filename'] = image_path + test_df['filename']
-
+    print("train: ",len(train_df),"val: ", len(val_df),"test: ", len(test_df))
     return train_df, test_df, val_df
+
 
 def plot_img(data):
     # Select cases to view
@@ -49,3 +52,6 @@ def plot_img(data):
         ax.set_title('Class: {} ({})'.format(class_names[cls], cls))
     plt.show()
 
+def read_slice(base_path):
+    paths = os.listdir(base_path)
+    
