@@ -9,11 +9,9 @@ from tqdm import tqdm
 
 
 def read_csv(base_path):
-    # 读取train.txt
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-    # 读取test.txt
     val_df = pd.read_csv(base_path + 'val_COVIDx_CT-2A.txt', sep=" ", header=None)
     val_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
@@ -62,12 +60,10 @@ def read_slice(base_path):
     patientes = []
     immagini_png = []
     label_tot = []
-    print(csv)
-    for path in tqdm(patientes_path):
-        name = path + "_0.nii.gz"
+    for path in tqdm(patientes_path[:5]):
+        name = path + ".nii.gz"
         names.append(path)
         label = csv[csv["filename"]==name]["label"].values.tolist()
-        print(label)
         y_true.append(label)
         scans_path = os.listdir(base_path + 'png/' + path)
         patient = []
@@ -82,7 +78,6 @@ def read_slice(base_path):
         patientes.append(patient)
         
     print("[INFO] Numero pazienti: {} - Numero totale immagini: {} ".format(len(patientes), len(immagini_png)))
-    print(label_tot[0])
     return patientes, y_true, immagini_png, label_tot
     
     
