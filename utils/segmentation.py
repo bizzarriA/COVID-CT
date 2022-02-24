@@ -1,4 +1,3 @@
-
 def get_segmented_lungs(raw_im, plot=False):
     from skimage.morphology import ball, disk, dilation, binary_erosion, remove_small_objects, erosion, closing, \
         reconstruction, binary_closing
@@ -8,6 +7,8 @@ def get_segmented_lungs(raw_im, plot=False):
     # from skimage import measure, feature
     from skimage.segmentation import clear_border, mark_boundaries
     from scipy import ndimage as ndi
+    import matplotlib.pyplot as plt
+
     '''
     Original function changes input image (ick!)
     '''
@@ -93,6 +94,7 @@ def get_segmented_lungs(raw_im, plot=False):
     plt.show()
     return binary
 
+
 def segment_cv2(path):
     from skimage import io
     from sklearn import cluster
@@ -102,7 +104,7 @@ def segment_cv2(path):
     import random as rng
 
     # read input and convert to range 0-1
-    image = io.imread(path, as_gray=True) / 255.0
+    image = io.imread(path, as_gray=True) #/ 255.0
     h, w = image.shape
 
     # reshape to 1D array
@@ -116,33 +118,48 @@ def segment_cv2(path):
     kmeans_cluster.fit(image_2d)
     cluster_centers = kmeans_cluster.cluster_centers_
     cluster_labels = kmeans_cluster.labels_
-    # print(cluster_labels, cluster_centers)
-    # cluster_centers[0], cluster_centers[1], cluster_centers[2] = 0, 255, 0
-    # print(cluster_labels, cluster_centers)
     # need to scale result back to range 0-255
-    newimage = cluster_centers[cluster_labels].reshape(h, w)
+    newimage = cluster_centers[cluster_labels].reshape(h, w) * 255
     newimage = newimage.astype('uint8')
     # display result
-    plt.imshow(newimage)
-    plt.show()
-    plt.hist(newimage.flatten(), bins=80, color='c')
-    plt.xlabel("Hounsfield Units (HU)")
-    plt.ylabel("Frequency")
-    plt.show()
+    # plt.imshow(newimage)
+    # plt.show()
 
-    # threshold = 250
-    # # Detect edges using Canny
-    # canny_output = cv2.Canny(newimage, threshold, threshold * 2)
-    # # Find contours
-    # contours, hierarchy = cv2.findContours(canny_output, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    # # Draw contours
-    # drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
-    # for i in range(len(contours)):
-    #     color = (rng.randint(0,256), rng.randint(0,256), rng.randint(0,256))
-    #     cv2.drawContours(drawing, contours, i, color, 2, cv2.LINE_8, hierarchy, 0)
-    # # Show in a window
+    threshold = 250
+    # Detect edges using Canny
+    canny_output = cv2.Canny(image, threshold, threshold * 2)
+    # Find contours
+    contours, hierarchy = cv2.findContours(canny_output, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # Draw contours
+    drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
+    for i in range(len(contours)):
+        color = (rng.randint(0, 256), rng.randint(0, 256), rng.randint(0, 256))
+        cv2.drawContours(drawing, contours, i, color, 2, cv2.LINE_8, hierarchy, 0)
+
+    # areas = [cv2.contourArea(c) for c in contours]
+    sorteddata = sorted(contours, key=cv2.contourArea, reverse=True)
+    # areas, contours = sorteddata
+    # [print(c) for c in areas]
+    for i in range(5):
+        cnt = sorteddata[i]
+        # snd_cnt = sorteddata[2]
+        # print(np.shape(sorteddata), cnt, snd_cnt)
+
+        # x1, y1, w1, h1 = cv2.boundingRect(cnt)
+        x, y, w, h = cv2.boundingRect(cnt)
+        # x2, y2, w2, h2 = cv2.boundingRect(snd_cnt)
+        # x = min(x1, x2)
+        # y = min(y1, y2)
+        # xw = max(x1 + w1, x2 + w2)
+        # yh = max(y1 + h1, y2 + h2)
+        # print(x1, y1, w1, h1)
+        # print(x2, y2, w2, h2)
+        # print(x, y, xw, yh)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    plt.imshow(image)
+    plt.show()
+    # cv2.imshow('edge', canny_output)
+    # Show in a window
     # plt.imshow(drawing)
     # plt.show()
-    #
-    #
-    #
