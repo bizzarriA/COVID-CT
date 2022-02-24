@@ -68,7 +68,6 @@ def read_slice(base_path):
         scans_path = os.listdir(base_path + 'png/' + path)
         patient = []
         for scan_path in scans_path:
-            print(label)
             scan = cv2.imread(base_path + 'png/'+ path + '/' + scan_path, 0)
             scan = cv2.resize(scan, (256, 256))
             scan = np.expand_dims(scan, axis=0)

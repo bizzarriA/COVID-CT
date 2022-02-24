@@ -2,6 +2,7 @@ from utils.data import read_slice
 
 import numpy as np
 import tensorflow as tf
+from tqdm import tqdm
 
 if __name__=="__main__":
     base_path="dataset/unife/"
@@ -16,7 +17,7 @@ if __name__=="__main__":
     print("[INFO] PROVIAMO per paziente:")
     x_test = x_patient
     y_true = y_patient
-    for i in range(len(x_test)):
+    for i in tqdm(range(len(x_test))):
         print(np.shape(x_test[i]))
         prediction = [model.predict(x_test[i][k], verbose=0) for k in range(len(x_test[i]))]
         print(prediction)
