@@ -6,7 +6,7 @@ from tqdm import tqdm
 from utils.data import read_csv
 
 if __name__=='__main__':
-    current_path = '/Users/alicebizzarri/PycharmProjects/COVID-CT/'
+    current_path = '' #'/Users/alicebizzarri/PycharmProjects/COVID-CT/'
     base_path = current_path + 'dataset/'
     _, _, test_df = read_csv(base_path)
     x_test = []
