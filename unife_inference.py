@@ -14,7 +14,7 @@ if __name__=="__main__":
     scores = []
     print("[INFO] PROVIAMO TOTALE:")
     x_test = x_tot
-    y_true = y_tot
+    y_true = np.ones(len(x_tot))
     for i in range(len(x_test)):
         prediction = model.predict(x_test[i], verbose=0)
         classes = np.argmax(prediction, axis=1)

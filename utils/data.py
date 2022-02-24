@@ -53,31 +53,35 @@ def plot_img(data):
     plt.show()
 
 def read_slice(base_path):
-    patientes_path = os.listdir(base_path+'png/')
+    patientes_path = os.listdir(base_path+'png_neg/')
     csv = pd.read_csv(base_path+'test_set_unife.csv', sep=';')
     names = []
     y_true = []
     patientes = []
     immagini_png = []
     label_tot = []
-    for path in tqdm(patientes_path[:5]):
-        name = path + ".nii.gz"
+    for path in tqdm(patientes_path):
+        name = path + "_0.nii.gz"
         names.append(path)
         label = csv[csv["filename"]==name]["label"].values.tolist()
         y_true.append(label)
-        scans_path = os.listdir(base_path + 'png/' + path)
+        scans_path = os.listdir(base_path + 'png_neg/' + path)
         patient = []
-        for scan_path in scans_path:
-            scan = cv2.imread(base_path + 'png/'+ path + '/' + scan_path, 0)
-            scan = cv2.resize(scan, (256, 256))
-            scan = np.expand_dims(scan, axis=0)
-            scan = np.expand_dims(scan, axis=-1)
+        centro = len(scans_path) // 2
+        for scan_path in scans_path[centro-3:centro+3]:
+            try:
+                scan = cv2.imread(base_path + 'png_neg/'+ path + '/' + scan_path, 0) / 255.
+                scan = cv2.resize(scan, (256, 256))
+                scan = np.expand_dims(scan, axis=0)
+                scan = np.expand_dims(scan, axis=-1)
+            except:
+                continue
             immagini_png.append(scan)
             label_tot.append(label)
             patient.append(scan)
         patientes.append(patient)
         
-    print("[INFO] Numero pazienti: {} - Numero totale immagini: {} ".format(len(patientes), len(immagini_png)))
+    print("[INFO] Numero pazienti: {} - Numero totale immagini: {} - Numero totale etichette: {}".format(len(patientes), len(immagini_png), len(label_tot)))
     return patientes, y_true, immagini_png, label_tot
     
     
@@ -85,14 +89,14 @@ def read_slice(base_path):
 
 def convert_nifti():
     base_path = 'dataset/unife/'
-    lista = os.listdir(base_path+'POS')
+    lista = os.listdir(base_path+'NEG')
     for p in lista:
         print("[INFO]", p)
-        directory = base_path + 'png/' + p[:-7]
+        directory = base_path + 'png_neg/' + p[:-7]
         print("[INFO]", directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        os.system("python utils/nii2png.py -i {0}POS/{1} -o {2}".format(base_path, p, directory))
+        os.system("python utils/nii2png.py -i {0}NEG/{1} -o {2}".format(base_path, p, directory))
         
 
 if __name__ == '__main__':
