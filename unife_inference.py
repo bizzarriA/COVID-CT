@@ -13,12 +13,14 @@ if __name__=="__main__":
     model.summary()
     y_pred = []
     scores = []
-    print("[INFO] PROVIAMO TOTALE:")
-    x_test = x_tot
-    y_true = y_tot
+    print("[INFO] PROVIAMO per paziente:")
+    x_test = x_patient
+    y_true = y_patient
     for i in range(len(x_test)):
-        prediction = model.predict(x_test[i], verbose=0)
-        classes = np.argmax(prediction, axis=1)
+        print(np.shape(x_test[i]))
+        prediction = [model.predict(x_test[i][k], verbose=0) for k in range(len(x_test[i]))]
+        print(prediction)
+        classes = np.mean(np.argmax(prediction, axis=1))
         prob = prediction[0, classes]
         y_pred.append(classes[0])
         scores.append(prediction)

@@ -9,11 +9,9 @@ from tqdm import tqdm
 
 
 def read_csv(base_path):
-    # 读取train.txt
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-    # 读取test.txt
     val_df = pd.read_csv(base_path + 'val_COVIDx_CT-2A.txt', sep=" ", header=None)
     val_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
@@ -62,7 +60,7 @@ def read_slice(base_path):
     patientes = []
     immagini_png = []
     label_tot = []
-    for path in tqdm(patientes_path):
+    for path in tqdm(patientes_path[:5]):
         name = path + "_0.nii.gz"
         names.append(path)
         label = np.array(csv[csv["filename"]==name]["label"])
@@ -70,6 +68,7 @@ def read_slice(base_path):
         scans_path = os.listdir(base_path + 'png/' + path)
         patient = []
         for scan_path in scans_path:
+            print(label)
             scan = cv2.imread(base_path + 'png/'+ path + '/' + scan_path, 0)
             scan = cv2.resize(scan, (256, 256))
             scan = np.expand_dims(scan, axis=0)
