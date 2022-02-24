@@ -6,13 +6,17 @@ from tqdm import tqdm
 from utils.data import read_csv
 
 if __name__=='__main__':
-    current_path = '' #'/Users/alicebizzarri/PycharmProjects/COVID-CT/'
+    current_path = '/Users/alicebizzarri/PycharmProjects/COVID-CT/'
     base_path = current_path + 'dataset/'
     _, _, test_df = read_csv(base_path)
     x_test = []
     test_df = test_df.sample(frac=1)
     print(test_df.values.tolist()[0])
+<<<<<<< HEAD
     n =  len(test_df)
+=======
+    n = 500 # len(test_df)
+>>>>>>> fbc38d61618f1760c8d33fb5a6bf9f3d0a4453b2
     for path in tqdm(test_df["filename"][:n]):
         img = cv2.imread(path, 0) / 255.
         img = cv2.resize(img, (256, 256))
