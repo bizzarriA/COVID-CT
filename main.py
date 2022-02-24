@@ -61,7 +61,7 @@ if __name__ == '__main__':
     model.fit(
         x_train, y_train,
         validation_data=(x_val, y_val),
-        epochs=5,
+        epochs=100,
         callbacks=callbacks,
         batch_size=32,
         shuffle=True,

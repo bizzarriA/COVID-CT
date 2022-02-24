@@ -12,7 +12,7 @@ if __name__=='__main__':
     x_test = []
     test_df = test_df.sample(frac=1)
     print(test_df.values.tolist()[0])
-    n= 100 # len(test_df)
+    n =  len(test_df)
     for path in tqdm(test_df["filename"][:n]):
         img = cv2.imread(path, 0) / 255.
         img = cv2.resize(img, (256, 256))
