@@ -19,16 +19,15 @@ if __name__=='__main__':
         img = np.expand_dims(img, axis=-1)
         img = np.expand_dims(img, axis=0)
         x_test.append(img)
-    y_true = [tf.keras.utils.to_categorical(label, 3) for label in test_df["label"][:n]] 
+    y_true = test_df["label"][:n]
     print(np.shape(x_test))
     print("lettura DS finita")
     model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220223-200225/')
     model.summary()
     y_pred = []
     scores = []
-    i = 0
-    for img in tqdm(x_test):
-        prediction = model.predict(img, verbose=0, batch_size=1)
+    for i in range(len(x_test)):
+        prediction = model.predict(x_test[i], verbose=0)
         classes = np.argmax(prediction, axis=1)
         prob = prediction[0, classes]
         y_pred.append(classes[0])
