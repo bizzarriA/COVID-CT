@@ -53,7 +53,7 @@ def plot_img(data):
     plt.show()
 
 def read_slice(base_path):
-    patientes_path = os.listdir(base_path+'png/')
+    patientes_path = os.listdir(base_path+'png_neg/')
     csv = pd.read_csv(base_path+'test_set_unife.csv', sep=';')
     names = []
     y_true = []
@@ -79,9 +79,8 @@ def read_slice(base_path):
                 patient.append(scan)
             patientes.append(patient)
         except:
-            continue
-        
-    print("[INFO] Numero pazienti: {} - Numero totale immagini: {} ".format(len(patientes), len(immagini_png)))
+            continue        
+    print("[INFO] Numero pazienti: {} - Numero totale immagini: {} - Numero totale etichette: {}".format(len(patientes), len(immagini_png), len(label_tot)))
     return patientes, y_true, immagini_png, label_tot
     
     

@@ -33,6 +33,7 @@ if __name__=="__main__":
             scores.append(prediction)
         # test_acc = sum(np.array(y_pred) == np.array(y_true[k*div:(k+1)*div])) / div
         # print("[info] ", test_acc)
+
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
     test_acc = sum(y_pred[0] == y_true[0]) / len(y_true)

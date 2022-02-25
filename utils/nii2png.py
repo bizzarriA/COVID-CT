@@ -44,7 +44,7 @@ def main(argv):
 
     # ask if rotate
     #ask_rotate = input('Would you like to rotate the orientation? (y/n) ')
-    ask_rotate = 'n'
+    ask_rotate = 'y'
     if ask_rotate.lower() == 'y':
         ask_rotate_num = 90 # int(input('OK. By 90° 180° or 270°? '))
         if ask_rotate_num == 90 or ask_rotate_num == 180 or ask_rotate_num == 270:
