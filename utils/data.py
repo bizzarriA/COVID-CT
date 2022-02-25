@@ -64,25 +64,23 @@ def read_slice(base_path):
     immagini_png = []
     label_tot = []
     for path in tqdm(patientes_path):
-        name = path + "_0.nii.gz"
-        names.append(path)
-        label = csv[csv["filename"]==name]["label"].values.tolist()
-        y_true.append(label)
-        scans_path = os.listdir(base_path + classe + path)
-        patient = []
-        centro = len(scans_path) // 2
-        for scan_path in scans_path[centro-10:centro+10]:
-            try:
+        try:
+            names.append(path)
+            label = csv[csv["filename"]==path]["label"].values.tolist()
+            y_true.append(label)
+            scans_path = os.listdir(base_path + classe + path)
+            patient = []
+            centro = len(scans_path) // 2
+            for scan_path in scans_path[centro-10:centro+10]: 
                 scan = cv2.imread(base_path + classe + path + '/' + scan_path, 0) / 255.
-                scan = cv2.resize(scan, (256, 256))
                 scan = np.expand_dims(scan, axis=0)
                 scan = np.expand_dims(scan, axis=-1)
                 immagini_png.append(scan)
                 label_tot.append(label)
                 patient.append(scan)
                 patientes.append(patient)
-            except:
-                continue        
+        except:
+            print("[ERROR] read path:", path)        
     print("[INFO] Numero pazienti: {} - Numero totale immagini: {} - Numero totale etichette: {}".format(len(patientes), len(immagini_png), len(label_tot)))
     return patientes, y_true, immagini_png, label_tot
     
