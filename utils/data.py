@@ -5,6 +5,7 @@ import nibabel as nib
 import numpy as np
 import os
 import pandas as pd
+import tensorflow as tf
 from tqdm import tqdm
 
 
@@ -25,7 +26,7 @@ def read_csv(base_path):
     val_df['filename'] = image_path + val_df['filename']
     test_df['filename'] = image_path + test_df['filename']
     print("train: ",len(train_df),"val: ", len(val_df),"test: ", len(test_df))
-    return train_df, test_df, val_df
+    return np.array(train_df), np.array(test_df), np.array(val_df)
 
 
 def plot_img(data):
@@ -96,5 +97,36 @@ def convert_nifti():
         os.system("python utils/nii2png.py -i {0}POS/{1} -o {2}".format(base_path, p, directory))
         
 
+
+def load_and_process(row):
+    # Load image
+    # print(row)
+    path = row[0]
+    label = row[1]
+    bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
+    # print("[INFO] ", path, label, bbox)
+    SIZE = 256
+    image = tf.image.decode_png(tf.io.read_file(path), channels=1)
+
+    image = tf.image.crop_to_bounding_box(image, bbox[1], bbox[0], bbox[3] - bbox[1], bbox[2] - bbox[0])
+
+    # Stack to 3-channel, scale to [0, 1] and resize
+    image = tf.image.grayscale_to_rgb(image)
+    image = tf.cast(image, tf.float32)
+    image = image / 255.0
+    image = tf.image.resize(image, [SIZE, SIZE])
+    label = tf.cast(label, dtype=tf.int32)
+
+    return image, label
+
+
+
 if __name__ == '__main__':
-    convert_nifti()
+    current_path ='/Users/alicebizzarri/PycharmProjects/COVID-CT/'
+    base_path = 'dataset/'
+    train_df, test_df, val_df = read_csv(current_path + base_path)
+    print(test_df[0])
+    x_test, y_test = np.transpose([load_and_process(row) for row in tqdm(test_df[:100])])
+    print(np.shape(x_test), np.shape(y_test))
+    # print(y_test[0])
+

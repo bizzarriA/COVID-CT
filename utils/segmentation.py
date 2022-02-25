@@ -96,6 +96,8 @@ def get_segmented_lungs(raw_im, plot=False):
 
 
 def segment_cv2(path):
+    
+
     from skimage import io
     from sklearn import cluster
     import matplotlib.pyplot as plt
@@ -127,11 +129,11 @@ def segment_cv2(path):
 
     threshold = 250
     # Detect edges using Canny
-    canny_output = cv2.Canny(image, threshold, threshold * 2)
+    canny_output = cv2.Canny(newimage, threshold, threshold * 2)
     # Find contours
     contours, hierarchy = cv2.findContours(canny_output, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # Draw contours
-    drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
+    drawing = image.copy()
     for i in range(len(contours)):
         color = (rng.randint(0, 256), rng.randint(0, 256), rng.randint(0, 256))
         cv2.drawContours(drawing, contours, i, color, 2, cv2.LINE_8, hierarchy, 0)
@@ -140,26 +142,15 @@ def segment_cv2(path):
     sorteddata = sorted(contours, key=cv2.contourArea, reverse=True)
     # areas, contours = sorteddata
     # [print(c) for c in areas]
-    for i in range(5):
+    print(len(sorteddata))
+    for i in range(len(sorteddata)):
         cnt = sorteddata[i]
-        # snd_cnt = sorteddata[2]
-        # print(np.shape(sorteddata), cnt, snd_cnt)
-
-        # x1, y1, w1, h1 = cv2.boundingRect(cnt)
         x, y, w, h = cv2.boundingRect(cnt)
-        # x2, y2, w2, h2 = cv2.boundingRect(snd_cnt)
-        # x = min(x1, x2)
-        # y = min(y1, y2)
-        # xw = max(x1 + w1, x2 + w2)
-        # yh = max(y1 + h1, y2 + h2)
-        # print(x1, y1, w1, h1)
-        # print(x2, y2, w2, h2)
-        # print(x, y, xw, yh)
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        color = (rng.randint(0, 256), rng.randint(0, 256), rng.randint(0, 256))
+        cv2.rectangle(image, (x, y), (x + w, y + h), color, 2)
 
-    plt.imshow(image)
-    plt.show()
-    # cv2.imshow('edge', canny_output)
-    # Show in a window
-    # plt.imshow(drawing)
-    # plt.show()
+    io.imshow(drawing)
+    io.show()
+
+if __name__=="__main__":
+    segment_cv2('/Users/alicebizzarri/PycharmProjects/COVID-CT/dataset/unife/png/29_000/29_000.ni_z123.png')

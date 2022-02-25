@@ -12,11 +12,7 @@ if __name__=='__main__':
     x_test = []
     test_df = test_df.sample(frac=1)
     print(test_df.values.tolist()[0])
-<<<<<<< HEAD
     n =  len(test_df)
-=======
-    n = 500 # len(test_df)
->>>>>>> fbc38d61618f1760c8d33fb5a6bf9f3d0a4453b2
     for path in tqdm(test_df["filename"][:n]):
         img = cv2.imread(path, 0) / 255.
         img = cv2.resize(img, (256, 256))

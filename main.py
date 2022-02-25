@@ -4,40 +4,20 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from utils.segmentation import segment_cv2
-from utils.data import read_csv, plot_img
+from utils.data import read_csv, load_and_process
 from utils.model import get_model
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     base_path = 'dataset/'
+    print("[INFO] Read Train - Val - Test:")
     train_df, test_df, val_df = read_csv(base_path)
-    n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
-    print(train_df.values.tolist()[0])
-    n_train, n_val, n_test = n_train-2, n_val, n_test
-    print("read train images")
-    # x_train = [cv2.imread(train_df["filename"][i], 0) / 255. for i in tqdm(range(n_train))]
-    # x_train = [cv2.resize(img, (512, 512)) for img in x_train]
-    # x_train = np.expand_dims(x_train, axis=-1)
-    x_train = []
-    for name in tqdm(train_df["filename"][:n_train]):
-        img = cv2.imread(name, 0) / 255
-        img = cv2.resize(img, (256, 256))
-        img = np.expand_dims(img, axis=-1)
-        x_train.append(img)
-    x_train = np.array(x_train)
-    
-    print(np.shape(x_train[0]))
-    y_train = tf.keras.utils.to_categorical(train_df["label"][:n_train], 3)
-    print(np.shape(x_train), np.shape(y_train))
-    print("read val images")
-    x_val = []
-    for name in tqdm(val_df["filename"][:n_val]):
-        img = cv2.imread(name, 0) / 255
-        img = cv2.resize(img, (256, 256))
-        img = np.expand_dims(img, axis=-1)
-        x_val.append(img)
-    x_val = np.array(x_val)
-    y_val = tf.keras.utils.to_categorical(val_df["label"][:n_val], 3)
+    x_train, y_train = np.transpose([load_and_process(row) for row in tqdm(test_df)])
+    x_val, y_val = np.transpose([load_and_process(row) for row in tqdm(test_df)])
+    x_test, y_test = np.transpose([load_and_process(row) for row in tqdm(test_df)])
+    y_train = tf.keras.utils.to_categorical(y_train, 3)
+    y_test = tf.keras.utils.to_categorical(y_test, 3)
+
     model = get_model(width=np.shape(x_train[0])[0], height=np.shape(x_train[0])[0])
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
@@ -68,4 +48,20 @@ if __name__ == '__main__':
         verbose=1
     )
     model.save("model/model_jpeg_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    
+    print("[INFO] Test Phase: ")
+    y_pred = []
+    scores = []
+    for i in range(len(x_test)):
+        prediction = model.predict(x_test[i], verbose=0)
+        classes = np.argmax(prediction, axis=1)
+        prob = prediction[0, classes]
+        y_pred.append(classes[0])
+        scores.append(prediction)
+    y_pred = np.array(y_pred)
+    y_true = np.array(y_test)
+    test_acc = sum(y_pred == y_true) / len(y_true)
+    print(test_acc)
+    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    print("Confusion matrix:\n",confusion_mtx)
 
