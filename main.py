@@ -12,13 +12,14 @@ if __name__ == '__main__':
     base_path = 'dataset/'
     print("[INFO] Read Train - Val - Test:")
     train_df, test_df, val_df = read_csv(base_path)
-    x_train, y_train = np.transpose([load_and_process(row) for row in tqdm(test_df)])
-    x_val, y_val = np.transpose([load_and_process(row) for row in tqdm(test_df)])
-    x_test, y_test = np.transpose([load_and_process(row) for row in tqdm(test_df)])
+    x_train = [load_and_process(row) for row in tqdm(train_df[:5])]
+    x_val = [load_and_process(row) for row in tqdm(val_df[:5])]
+    # x_test, y_test = np.transpose([load_and_process(row) for row in tqdm(test_df[:50])])
+    y_train = [row[1] for row in train_df[:5]]
+    y_val = [row[1] for row in val_df[:5]]
     y_train = tf.keras.utils.to_categorical(y_train, 3)
-    y_test = tf.keras.utils.to_categorical(y_test, 3)
-
-    model = get_model(width=np.shape(x_train[0])[0], height=np.shape(x_train[0])[0])
+    y_val = tf.keras.utils.to_categorical(y_val, 3)
+    model = get_model(width=256, height=256)
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
@@ -49,19 +50,19 @@ if __name__ == '__main__':
     )
     model.save("model/model_jpeg_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     
-    print("[INFO] Test Phase: ")
-    y_pred = []
-    scores = []
-    for i in range(len(x_test)):
-        prediction = model.predict(x_test[i], verbose=0)
-        classes = np.argmax(prediction, axis=1)
-        prob = prediction[0, classes]
-        y_pred.append(classes[0])
-        scores.append(prediction)
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_test)
-    test_acc = sum(y_pred == y_true) / len(y_true)
-    print(test_acc)
-    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    print("Confusion matrix:\n",confusion_mtx)
+    # print("[INFO] Test Phase: ")
+    # y_pred = []
+    # scores = []
+    # for i in range(len(x_test)):
+    #     prediction = model.predict(x_test[i], verbose=0)
+    #     classes = np.argmax(prediction, axis=1)
+    #     prob = prediction[0, classes]
+    #     y_pred.append(classes[0])
+    #     scores.append(prediction)
+    # y_pred = np.array(y_pred)
+    # y_true = np.array(y_test)
+    # test_acc = sum(y_pred == y_true) / len(y_true)
+    # print(test_acc)
+    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    # print("Confusion matrix:\n",confusion_mtx)
 

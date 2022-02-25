@@ -111,13 +111,15 @@ def load_and_process(row):
     image = tf.image.crop_to_bounding_box(image, bbox[1], bbox[0], bbox[3] - bbox[1], bbox[2] - bbox[0])
 
     # Stack to 3-channel, scale to [0, 1] and resize
-    image = tf.image.grayscale_to_rgb(image)
+    # image = tf.image.grayscale_to_rgb(image)
     image = tf.cast(image, tf.float32)
     image = image / 255.0
     image = tf.image.resize(image, [SIZE, SIZE])
-    label = tf.cast(label, dtype=tf.int32)
+    # image = np.expand_dims(image, axis=0)
+    # label = tf.cast(label, dtype=tf.int32)
+    # print(np.shape(image))
 
-    return image, label
+    return image
 
 
 
