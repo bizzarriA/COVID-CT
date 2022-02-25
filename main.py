@@ -12,15 +12,14 @@ if __name__ == '__main__':
     base_path = 'dataset/'
     print("[INFO] Read Train - Val - Test:")
     train_df, test_df, val_df = read_csv(base_path)
-    n = 5
     x_train = []
     y_train = []
-    for row in tqdm(test_df[:n+n]):
+    for row in tqdm(train_df):
         x_train.append(load_and_process(row))
         y_train.append(tf.keras.utils.to_categorical(row[1], 3))
     x_val = []
     y_val = []
-    for row in tqdm(val_df[:n]):
+    for row in tqdm(val_df):
         x_val.append(load_and_process(row))
         y_val.append(tf.keras.utils.to_categorical(row[1], 3))
     x_train = np.array(x_train)
