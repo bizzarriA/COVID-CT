@@ -17,6 +17,12 @@ import sys, getopt
 import imageio
 
 
+def hu_to_uint8(hu_images, window_width, window_center):
+    """Converts HU images to uint8 images"""
+    images = (hu_images.astype(np.float) - window_center + window_width/2)/window_width
+    uint8_images = np.uint8(255.0*np.clip(images, 0.0, 1.0))
+    return uint8_images
+
 def main(argv):
     inputfile = ''
     outputfile = ''
@@ -39,14 +45,14 @@ def main(argv):
 
     # set fn as your 4d nifti file
     image_array = nibabel.load(inputfile).get_data()
-    # image_array = image_array.transpose(2, 1, 0)
+    image_array = image_array.transpose(2, 1, 0)
     print(len(image_array.shape))
 
     # ask if rotate
     #ask_rotate = input('Would you like to rotate the orientation? (y/n) ')
     ask_rotate = 'y'
     if ask_rotate.lower() == 'y':
-        ask_rotate_num = 90 # int(input('OK. By 90° 180° or 270°? '))
+        ask_rotate_num = 270 # int(input('OK. By 90° 180° or 270°? '))
         if ask_rotate_num == 90 or ask_rotate_num == 180 or ask_rotate_num == 270:
             print('Got it. Your images will be rotated by {} degrees.'.format(ask_rotate_num))
         else:

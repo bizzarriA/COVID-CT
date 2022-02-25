@@ -53,7 +53,8 @@ def plot_img(data):
     plt.show()
 
 def read_slice(base_path):
-    patientes_path = os.listdir(base_path+'png_neg/')
+    classe = 'png/'
+    patientes_path = os.listdir(base_path+classe)
     csv = pd.read_csv(base_path+'test_set_unife.csv', sep=';')
     names = []
     y_true = []
@@ -65,12 +66,12 @@ def read_slice(base_path):
         names.append(path)
         label = csv[csv["filename"]==name]["label"].values.tolist()
         y_true.append(label)
-        scans_path = os.listdir(base_path + 'png_neg/' + path)
+        scans_path = os.listdir(base_path + classe + path)
         patient = []
         centro = len(scans_path) // 2
-        for scan_path in scans_path[centro-3:centro+3]:
+        for scan_path in scans_path[centro-10:centro+10]:
             try:
-                scan = cv2.imread(base_path + 'png_neg/'+ path + '/' + scan_path, 0) / 255.
+                scan = cv2.imread(base_path + classe + path + '/' + scan_path, 0) / 255.
                 scan = cv2.resize(scan, (256, 256))
                 scan = np.expand_dims(scan, axis=0)
                 scan = np.expand_dims(scan, axis=-1)
@@ -89,14 +90,14 @@ def read_slice(base_path):
 
 def convert_nifti():
     base_path = 'dataset/unife/'
-    lista = os.listdir(base_path+'NEG')
+    lista = os.listdir(base_path+'POS')
     for p in lista:
         print("[INFO]", p)
-        directory = base_path + 'png_neg/' + p[:-7]
+        directory = base_path + 'png/' + p[:-7]
         print("[INFO]", directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
-        os.system("python utils/nii2png.py -i {0}NEG/{1} -o {2}".format(base_path, p, directory))
+        os.system("python utils/nii2png.py -i {0}POS/{1} -o {2}".format(base_path, p, directory))
         
 
 if __name__ == '__main__':

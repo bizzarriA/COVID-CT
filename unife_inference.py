@@ -8,15 +8,15 @@ if __name__=="__main__":
     current_path ='' # '/Users/alicebizzarri/PycharmProjects/COVID-CT/'
     x_patient, y_patient, x_tot, y_tot = read_slice(current_path + base_path)    
     print("lettura DS finita")
-    model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220223-200225/')
+    model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220224-203030/')
     model.summary()
     y_pred = []
     scores = []
     print("[INFO] PROVIAMO TOTALE:")
     x_test = x_tot
-    y_true = np.ones(len(x_tot))
+    y_true = y_tot
     for i in range(len(x_test)):
-        prediction = model.predict(x_test[i], verbose=0)
+        prediction = model.predict(x_test[i], batch_size=1, verbose=1)
         classes = np.argmax(prediction, axis=1)
         prob = prediction[0, classes]
         y_pred.append(classes[0])
