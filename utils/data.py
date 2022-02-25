@@ -5,6 +5,7 @@ import nibabel as nib
 import numpy as np
 import os
 import pandas as pd
+from skimage import io
 import tensorflow as tf
 from tqdm import tqdm
 
@@ -102,22 +103,15 @@ def load_and_process(row):
     # Load image
     # print(row)
     path = row[0]
-    label = row[1]
     bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
     # print("[INFO] ", path, label, bbox)
     SIZE = 256
-    image = tf.image.decode_png(tf.io.read_file(path), channels=1)
-
-    image = tf.image.crop_to_bounding_box(image, bbox[1], bbox[0], bbox[3] - bbox[1], bbox[2] - bbox[0])
-
-    # Stack to 3-channel, scale to [0, 1] and resize
-    image = tf.image.grayscale_to_rgb(image)
-    image = tf.cast(image, tf.float32)
+    image = cv2.imread(path, 0)
+    image = image[bbox[1]:bbox[3], bbox[0]:bbox[2]]
     image = image / 255.0
-    image = tf.image.resize(image, [SIZE, SIZE])
-    label = tf.cast(label, dtype=tf.int32)
-
-    return image, label
+    image = cv2.resize(image, (SIZE, SIZE))
+    image = tf.expand_dims(image, axis=-1)
+    return image
 
 
 
@@ -126,7 +120,9 @@ if __name__ == '__main__':
     base_path = 'dataset/'
     train_df, test_df, val_df = read_csv(current_path + base_path)
     print(test_df[0])
-    x_test, y_test = np.transpose([load_and_process(row) for row in tqdm(test_df[:100])])
-    print(np.shape(x_test), np.shape(y_test))
+    x_test = [load_and_process(row) for row in tqdm(test_df[:1])]
+    # x_test = np.expand_dims(x_test, axis=0)
+    print(np.shape(x_test))
+
     # print(y_test[0])
 

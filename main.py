@@ -1,9 +1,9 @@
 import cv2
 import datetime
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
-from utils.segmentation import segment_cv2
 from utils.data import read_csv, load_and_process
 from utils.model import get_model
 
@@ -12,13 +12,22 @@ if __name__ == '__main__':
     base_path = 'dataset/'
     print("[INFO] Read Train - Val - Test:")
     train_df, test_df, val_df = read_csv(base_path)
-    x_train, y_train = np.transpose([load_and_process(row) for row in tqdm(test_df)])
-    x_val, y_val = np.transpose([load_and_process(row) for row in tqdm(test_df)])
-    x_test, y_test = np.transpose([load_and_process(row) for row in tqdm(test_df)])
-    y_train = tf.keras.utils.to_categorical(y_train, 3)
-    y_test = tf.keras.utils.to_categorical(y_test, 3)
-
-    model = get_model(width=np.shape(x_train[0])[0], height=np.shape(x_train[0])[0])
+    n = 5
+    x_train = []
+    y_train = []
+    for row in tqdm(test_df[:n+n]):
+        x_train.append(load_and_process(row))
+        y_train.append(tf.keras.utils.to_categorical(row[1], 3))
+    x_val = []
+    y_val = []
+    for row in tqdm(val_df[:n]):
+        x_val.append(load_and_process(row))
+        y_val.append(tf.keras.utils.to_categorical(row[1], 3))
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
+    x_val = np.array(x_val)
+    y_val = np.array(y_val)
+    model = get_model(width=256, height=256)
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
@@ -38,6 +47,7 @@ if __name__ == '__main__':
         metrics=['acc'],
     )
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
+    print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
         x_train, y_train,
         validation_data=(x_val, y_val),
