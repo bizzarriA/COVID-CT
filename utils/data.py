@@ -111,6 +111,7 @@ def load_and_process(row):
     image = image / 255.0
     image = cv2.resize(image, (SIZE, SIZE))
     image = tf.expand_dims(image, axis=-1)
+
     return image
 
 

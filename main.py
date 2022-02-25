@@ -59,19 +59,19 @@ if __name__ == '__main__':
     )
     model.save("model/model_jpeg_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     
-    print("[INFO] Test Phase: ")
-    y_pred = []
-    scores = []
-    for i in range(len(x_test)):
-        prediction = model.predict(x_test[i], verbose=0)
-        classes = np.argmax(prediction, axis=1)
-        prob = prediction[0, classes]
-        y_pred.append(classes[0])
-        scores.append(prediction)
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_test)
-    test_acc = sum(y_pred == y_true) / len(y_true)
-    print(test_acc)
-    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    print("Confusion matrix:\n",confusion_mtx)
+    # print("[INFO] Test Phase: ")
+    # y_pred = []
+    # scores = []
+    # for i in range(len(x_test)):
+    #     prediction = model.predict(x_test[i], verbose=0)
+    #     classes = np.argmax(prediction, axis=1)
+    #     prob = prediction[0, classes]
+    #     y_pred.append(classes[0])
+    #     scores.append(prediction)
+    # y_pred = np.array(y_pred)
+    # y_true = np.array(y_test)
+    # test_acc = sum(y_pred == y_true) / len(y_true)
+    # print(test_acc)
+    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    # print("Confusion matrix:\n",confusion_mtx)
 
