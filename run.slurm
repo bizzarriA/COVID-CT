@@ -6,7 +6,6 @@
 #SBATCH -p m100_usr_prod
 #SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=32
-#SBATCH --mem=246000
+#SBATCH --mem=100000
 
-python main.py
+python unife_inference.py
