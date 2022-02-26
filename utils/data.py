@@ -57,7 +57,8 @@ def plot_img(data):
 def read_slice(base_path):
     classe = 'png/'
     patientes_path = os.listdir(base_path+classe)
-    csv = pd.read_csv(base_path+'test_set_unife.csv', sep=';')
+    print(len(patientes_path))
+    csv = pd.read_csv(base_path+'test_set_unife.csv')
     names = []
     y_true = []
     patientes = []
@@ -65,8 +66,8 @@ def read_slice(base_path):
     label_tot = []
     for path in tqdm(patientes_path):
         try:
-            names.append(path)
-            label = csv[csv["filename"]==path+"_0.nii.gz"]["label"].values.tolist()
+            # names.append(path)
+            label = csv[csv["filename"]==path]["label"].values.tolist()
             if label != []:
                 y_true.append(label)
                 scans_path = os.listdir(base_path + classe + path)
@@ -79,11 +80,12 @@ def read_slice(base_path):
                     immagini_png.append(scan)
                     label_tot.append(label)
                     patient.append(scan)
-                    patientes.append(patient)
+                    names.append(path+'_'+scan_path)
+                patientes.append(patient)
         except:
             print("[ERROR] read path:", path)        
     print("[INFO] Numero pazienti: {} - Numero totale immagini: {} - Numero totale etichette: {}".format(len(patientes), len(immagini_png), len(label_tot)))
-    return patientes, y_true, immagini_png, label_tot
+    return names, immagini_png, label_tot
     
 def convert_nifti():
     base_path = 'dataset/unife/'
