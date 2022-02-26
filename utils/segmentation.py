@@ -12,7 +12,7 @@ _RESCALE_INTERCEPT = -1024
 
 IMG_EXTENSIONS = ('png', 'jpg', 'jpeg', 'tif', 'bmp')
 HU_WINDOW_WIDTH = 1500
-HU_WINDOW_CENTER = -1000
+HU_WINDOW_CENTER = -600
 
 
 def hu_to_uint8(hu_images, window_width, window_center):
