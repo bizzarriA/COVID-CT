@@ -5,6 +5,7 @@ import nibabel as nib
 import numpy as np
 import os
 import pandas as pd
+import random
 from skimage import io
 import tensorflow as tf
 from tqdm import tqdm
@@ -54,9 +55,11 @@ def plot_img(data):
         ax.set_title('Class: {} ({})'.format(class_names[cls], cls))
     plt.show()
 
-def read_slice(base_path):
+def read_slice(base_path, shuffle=False):
     classe = 'png/'
     patientes_path = os.listdir(base_path+classe)
+    if shuffle:
+        patientes_path = random.shuffle(patientes_path)
     print(len(patientes_path))
     csv = pd.read_csv(base_path+'test_set_unife.csv')
     names = []
