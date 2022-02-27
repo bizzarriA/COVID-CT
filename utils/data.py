@@ -67,7 +67,7 @@ def read_slice(base_path):
     for path in tqdm(patientes_path):
         try:
             # names.append(path)
-            label = csv[csv["filename"]==path]["label"].values.tolist()
+            label = csv[csv["filename"]==path]["label"].values.tolist()[0]
             if label != []:
                 y_true.append(label)
                 scans_path = os.listdir(base_path + classe + path)

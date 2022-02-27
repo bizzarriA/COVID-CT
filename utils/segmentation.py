@@ -12,7 +12,7 @@ _RESCALE_INTERCEPT = -1024
 
 IMG_EXTENSIONS = ('png', 'jpg', 'jpeg', 'tif', 'bmp')
 HU_WINDOW_WIDTH = 1500
-HU_WINDOW_CENTER = -600
+HU_WINDOW_CENTER = -1000
 
 
 def hu_to_uint8(hu_images, window_width, window_center):
@@ -56,12 +56,14 @@ def auto_body_crop(image, scale=1.0):
     """Roughly crop an image to the body region"""
     # Create initial binary image
     filt_image = cv2.GaussianBlur(image, (5, 5), 0)
+    cv2.imwrite('rova.png', filt_image)
     filt_image = np.uint8(filt_image)
-    thresh = cv2.threshold(filt_image[filt_image > 0], 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[0]
+    thresh = cv2.threshold(filt_image[filt_image > 0], 50, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[0]
     bin_image = np.uint8(filt_image > thresh)
+    
     erode_kernel = np.ones((7, 7), dtype=np.uint8)
     bin_image = cv2.erode(bin_image, erode_kernel)
-
+    
     # Find body contour
     body_cont = body_contour(bin_image).squeeze()
 
@@ -94,7 +96,7 @@ def validate(scan):
 if __name__=="__main__":
     base_path = '/Users/alicebizzarri/PycharmProjects/COVID-CT/dataset/unife/POS/'
     lista = os.listdir(base_path)
-    for path in tqdm(lista):
+    for path in tqdm(lista[:1]):
         try:
             directory = 'dataset/unife/png/' + path[:-7]
             if not os.path.exists(directory):
@@ -102,7 +104,7 @@ if __name__=="__main__":
             volume = nib.load(base_path+path).get_fdata()
             volume = np.transpose(volume)
             i = 0
-            for idx, scan in zip(range(len(volume)), volume):
+            for idx, scan in enumerate(volume[100:132]):
                 # is_validate = validate(scan)
                 # if is_validate:
                 scan = _uint16_hu_to_uint8(scan)
