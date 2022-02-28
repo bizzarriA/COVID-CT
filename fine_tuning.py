@@ -13,14 +13,14 @@ if __name__=="__main__":
     print("lettura DS finita")
     model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220224-203030')
     model.summary()
+    print("Shape x and y:", np.shape(x_tot), np.shape(y_tot))
     n_tot = len(x_tot)
-    n_train = n_tot*0.70
-    n_test = n_tot*0.15 
+    n_train = int(n_tot*0.70)
+    n_test = int(n_tot*0.15) 
     y_tot = tf.keras.utils.to_categorical(y_tot, 3)
-    x_train = x_tot[:n_train]
-    y_train = y_tot[:n_train]
-    x_val = x_tot[n_train:-n_test]
-    y_val = y_tot[n_train:-n_test]
+    batch_size = 16
+    train_set = tf.data.Dataset.from_tensor_slices((x_tot[:n_train],y_tot[:n_train])).shuffle(n_train).batch(batch_size, drop_remainder=True).prefetch(2)
+    val_set = tf.data.Dataset.from_tensor_slices((x_tot[n_train:-n_test],y_tot[n_train:-n_test])).batch(batch_size, drop_remainder=True).prefetch(2)
     x_test = x_tot[-n_test:]
     y_test = y_tot[-n_test:]
     fine_tune_at = -7
@@ -43,15 +43,15 @@ if __name__=="__main__":
     optimizer = tf.keras.optimizers.Adam(0.001)  # * hvd.size())
     print("[INFO] Model compile")
     model.compile(
-        loss=tf.keras.losses.CategoricalCrossentropy(),
+        loss="categorical_crossentropy",
         optimizer=optimizer,
         metrics=['acc'],
     )
-    print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
-    print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
+    #print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
+    #print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
-        x_train, y_train,
-        validation_data=(x_val, y_val),
+        train_set,
+        validation_data=val_set,
         epochs=10,
         callbacks=callbacks,
         batch_size=32,

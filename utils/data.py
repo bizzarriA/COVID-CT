@@ -59,7 +59,7 @@ def read_slice(base_path, shuffle=False):
     classe = 'png/'
     patientes_path = os.listdir(base_path+classe)
     if shuffle:
-        patientes_path = random.shuffle(patientes_path)
+        random.shuffle(patientes_path)
     print(len(patientes_path))
     csv = pd.read_csv(base_path+'test_set_unife.csv')
     names = []
@@ -67,7 +67,7 @@ def read_slice(base_path, shuffle=False):
     patientes = []
     immagini_png = []
     label_tot = []
-    for path in tqdm(patientes_path):
+    for path in tqdm(patientes_path[:1]):
         try:
             # names.append(path)
             label = csv.loc[csv["filename"]==path]["label"].item()
@@ -76,15 +76,13 @@ def read_slice(base_path, shuffle=False):
             patient = []
             centro = len(scans_path) // 2
             if label == 0:
-                n = 50
+                n = 60
             elif label == 1:
-                n = 10
+                n = 60
             elif label == 2:
-                n = 5
+                n = 60
             for scan_path in scans_path[centro-n:centro+n]:
-                scan = cv2.imread(base_path + classe + path + '/' + scan_path, 0) / 255.
-                scan = np.expand_dims(scan, axis=0)
-                scan = np.expand_dims(scan, axis=-1)
+                scan = load_and_process(path=base_path + classe + path + '/' + scan_path)
                 immagini_png.append(scan)
                 label_tot.append(label)
                 patient.append(scan)
@@ -108,15 +106,17 @@ def convert_nifti():
         
 
 
-def load_and_process(row):
+def load_and_process(row=None, path=None):
     # Load image
     # print(row)
-    path = row[0]
-    bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
+    if row is not None:
+        path = row[0]
     # print("[INFO] ", path, label, bbox)
     SIZE = 256
     image = cv2.imread(path, 0)
-    image = image[bbox[1]:bbox[3], bbox[0]:bbox[2]]
+    if row is not None:
+        bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
+        image = image[bbox[1]:bbox[3], bbox[0]:bbox[2]]
     image = image / 255.0
     image = cv2.resize(image, (SIZE, SIZE))
     image = tf.expand_dims(image, axis=-1)
