@@ -67,8 +67,8 @@ def read_slice(base_path, shuffle=False):
     patientes = []
     immagini_png = []
     label_tot = []
-    for path in tqdm(patientes_path[:1]):
-        # try:
+    for path in tqdm(patientes_path):
+        try:
             # names.append(path)
             label = csv.loc[csv["filename"]==path]["label"].item()
             y_true.append(label)
@@ -88,8 +88,8 @@ def read_slice(base_path, shuffle=False):
                 patient.append(scan)
                 names.append(path+'_'+scan_path)
             patientes.append(patient)
-        # except:
-        #     print("[ERROR] read path:", path)        
+        except:
+            print("[ERROR] read path:", path)        
     print("[INFO] Numero pazienti: {} - Numero totale immagini: {} - Numero totale etichette: {}".format(len(patientes), len(immagini_png), len(label_tot)))
     return names, immagini_png, label_tot
     
@@ -126,13 +126,14 @@ def load_and_process(row=None, path=None):
 
 
 if __name__ == '__main__':
-    current_path ='/Users/alicebizzarri/PycharmProjects/COVID-CT/'
-    base_path = 'dataset/'
-    train_df, test_df, val_df = read_csv(current_path + base_path)
-    print(test_df[0])
-    x_test = [load_and_process(row) for row in tqdm(test_df[:1])]
-    # x_test = np.expand_dims(x_test, axis=0)
-    print(np.shape(x_test))
-
+    csv = pd.read_csv('dataset/unife/test_set_unife.csv')
+    filename = []
+    label = []
+    for _, row in csv.iterrows():
+        scan = []
+        scans = os.listdir('dataset/unife/png/'+row['filename'])
+        for s in scans:
+                filename.append('dataset/unife/png/'+row['filename']+'/'+s)
+                label.append(row['label']) 
     # print(y_test[0])
 
