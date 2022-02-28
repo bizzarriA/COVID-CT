@@ -5,32 +5,47 @@ import os
 import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm
+
 from utils.data import read_slice
+from utils.model import get_model
 
 if __name__=="__main__":
     base_path="dataset/unife/"
     current_path ='' # '/Users/alicebizzarri/PycharmProjects/COVID-CT/'
-    name, x_tot, y_tot = read_slice(current_path + base_path, shuffle=True)    
-    print("lettura DS finita")
-    model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220224-203030')
+    csv = pd.read_csv(base_path+'unife.csv')
+    train_df = csv[csv['split'] == 'train']
+    val_df = csv[csv['split'] == 'val']
+    test_df = csv[csv['split'] == 'test']
+    n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
+    print(n_train, n_val, n_test)
+    n_train, n_val, n_test = 100, 13, 10
+    print("read train images")
+    x_train = []
+    for name in tqdm(train_df["filename"][:n_train]):
+        img = cv2.imread(name, 0) / 255
+        img = cv2.resize(img, (256, 256))
+        img = np.expand_dims(img, axis=-1)
+        x_train.append(img)
+    x_train = np.array(x_train)
+    y_train = tf.keras.utils.to_categorical(train_df["label"][:n_train], 3)
+    print("read val images")
+    x_val = []
+    for name in tqdm(val_df["filename"][:n_val]):
+        img = cv2.imread(name, 0) / 255
+        img = cv2.resize(img, (256, 256))
+        img = np.expand_dims(img, axis=-1)
+        x_val.append(img)
+    x_val = np.array(x_val)
+    y_val = tf.keras.utils.to_categorical(val_df["label"][:n_val], 3)
+    print(np.shape(x_train[0]))
+    # model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220223-200225')
+    model = get_model(width=256, height=256)
     model.summary()
-    print("Shape x and y:", np.shape(x_tot), np.shape(y_tot))
-    n_tot = len(x_tot)
-    n_train = int(n_tot*0.70)
-    n_test = int(n_tot*0.15) 
-    y_tot = tf.keras.utils.to_categorical(y_tot, 3)
-    batch_size = 16
-    train_set = (x_tot[:n_train],y_tot[:n_train])
-    val_set =   (x_tot[n_train:-n_test],y_tot[n_train:-n_test])
-    x_test = x_tot[-n_test:]
-    y_test = y_tot[-n_test:]
-    name_test = name[-n_test:]
     fine_tune_at = -7
     # Freeze all the layers before the `fine_tune_at` layer
     for layer in model.layers[:fine_tune_at]:
         layer.trainable = False
         print(layer)
-    
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
@@ -52,11 +67,11 @@ if __name__=="__main__":
     #print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     #print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
-        train_set,
-        validation_data=val_set,
+        x_train, y_train,
+        validation_data=(x_val, y_val),
         epochs=10,
         callbacks=callbacks,
-        batch_size=32,
+        batch_size=2,
         shuffle=True,
         verbose=1
     )

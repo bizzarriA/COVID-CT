@@ -126,13 +126,40 @@ def load_and_process(row=None, path=None):
 
 
 if __name__ == '__main__':
-    current_path ='/Users/alicebizzarri/PycharmProjects/COVID-CT/'
-    base_path = 'dataset/'
-    train_df, test_df, val_df = read_csv(current_path + base_path)
-    print(test_df[0])
-    x_test = [load_and_process(row) for row in tqdm(test_df[:1])]
-    # x_test = np.expand_dims(x_test, axis=0)
-    print(np.shape(x_test))
-
-    # print(y_test[0])
+    csv = pd.read_csv('dataset/unife/test_set_unife.csv')
+    filename = []
+    label = []
+    splits = []
+    csv = csv.sample(frac=1).reset_index()
+    print(csv)
+    n_train = int(len(csv))*0.70
+    n_val = n_train + int(len(csv))*0.15
+    for i, row in csv.iterrows():
+        try:
+            scan = []
+            scans = os.listdir('dataset/unife/png/'+row['filename'])
+            n = 50
+            if i<n_train:
+                spl = 'train'
+                print("TRAIN: ", row['filename'])
+            elif i<n_val:
+                spl = 'val'
+                print("VAL: ", row['filename'])
+            else:
+                spl = 'test'
+                print("TEST: ", row['filename'])
+           #  if row['label'] == 0:
+           #      n = 50
+           #  elif row['label'] == 1:
+           #      n = 10
+           #  elif row['label'] == 2:
+           #      n = 5
+            centro = int(len(scans)/2)
+            for s in scans[centro-n:centro+n]:
+                    filename.append('dataset/unife/png/'+row['filename']+'/'+s)
+                    label.append(row['label'])
+                    splits.append(spl)
+        except:
+            print("ERRORE")
+    new_csv = pd.DataFrame({'filename': filename, 'label':label, 'split':splits}).to_csv('dataset/unife/unife.csv')
 
