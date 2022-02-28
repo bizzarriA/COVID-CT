@@ -23,7 +23,7 @@ if __name__=="__main__":
     x_train = []
     for name in tqdm(train_df["filename"][:n_train]):
         img = cv2.imread(name, 0) / 255
-        img = cv2.resize(img, (256, 256))
+        #img = cv2.resize(img, (256, 256))
         img = np.expand_dims(img, axis=-1)
         x_train.append(img)
     x_train = np.array(x_train)
@@ -32,7 +32,7 @@ if __name__=="__main__":
     x_val = []
     for name in tqdm(val_df["filename"][:n_val]):
         img = cv2.imread(name, 0) / 255
-        img = cv2.resize(img, (256, 256))
+        #img = cv2.resize(img, (256, 256))
         img = np.expand_dims(img, axis=-1)
         x_val.append(img)
     x_val = np.array(x_val)
