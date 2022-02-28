@@ -8,4 +8,4 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=100000
 
-python unife_inference.py
+python fine_tuning.py

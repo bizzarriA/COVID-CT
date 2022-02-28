@@ -67,7 +67,7 @@ def read_slice(base_path, shuffle=False):
     patientes = []
     immagini_png = []
     label_tot = []
-    for path in tqdm(patientes_path[:1]):
+    for path in tqdm(patientes_path):
         try:
             # names.append(path)
             label = csv.loc[csv["filename"]==path]["label"].item()
