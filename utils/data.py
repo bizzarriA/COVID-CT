@@ -68,7 +68,7 @@ def read_slice(base_path, shuffle=False):
     immagini_png = []
     label_tot = []
     for path in tqdm(patientes_path[:1]):
-        try:
+        # try:
             # names.append(path)
             label = csv.loc[csv["filename"]==path]["label"].item()
             y_true.append(label)
@@ -88,8 +88,8 @@ def read_slice(base_path, shuffle=False):
                 patient.append(scan)
                 names.append(path+'_'+scan_path)
             patientes.append(patient)
-        except:
-            print("[ERROR] read path:", path)        
+        # except:
+        #     print("[ERROR] read path:", path)        
     print("[INFO] Numero pazienti: {} - Numero totale immagini: {} - Numero totale etichette: {}".format(len(patientes), len(immagini_png), len(label_tot)))
     return names, immagini_png, label_tot
     

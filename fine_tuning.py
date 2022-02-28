@@ -11,7 +11,7 @@ if __name__=="__main__":
     current_path ='' # '/Users/alicebizzarri/PycharmProjects/COVID-CT/'
     name, x_tot, y_tot = read_slice(current_path + base_path, shuffle=True)    
     print("lettura DS finita")
-    model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220224-203030')
+    model = tf.keras.models.load_model(current_path + 'model/model_jpeg_20220223-200225')
     model.summary()
     print("Shape x and y:", np.shape(x_tot), np.shape(y_tot))
     n_tot = len(x_tot)
