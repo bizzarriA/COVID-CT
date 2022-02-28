@@ -22,8 +22,9 @@ if __name__=="__main__":
     print("read train images")
     x_train = []
     for name in tqdm(train_df["filename"][:n_train]):
+        print(name)
         img = cv2.imread(name, 0) / 255
-        #img = cv2.resize(img, (256, 256))
+        # img = cv2.resize(img, (256, 256))
         img = np.expand_dims(img, axis=-1)
         x_train.append(img)
     x_train = np.array(x_train)
@@ -77,21 +78,21 @@ if __name__=="__main__":
     )
     model.save("model/model_ft_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
 
-    y_true = y_test
-    pd.DataFrame({'id':name_test}).to_csv('test_set.csv')
-    for i in tqdm(range(len(x_test))):
-        prediction = model.predict(x_test[i], batch_size=1, verbose=0)
-        classes = np.argmax(prediction, axis=1)
-        prob = prediction[0, classes]
-        y_pred.append(classes[0])
-        scores.append(prediction)
-    y_pred = tf.keras.utils.to_categorical(y_pred, 3)
-    result = pd.DataFrame({'id': name, 'y_pred':y_pred, 'y_true':y_true})
-    result.to_csv('result.csv')
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_true)
-    print(y_true)
-    test_acc = sum(y_pred == y_true) / len(y_true)
-    print("[info] ", test_acc)
-    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    print("Confusion matrix:\n",confusion_mtx)
+    # y_true = y_test
+    # pd.DataFrame({'id':name_test}).to_csv('test_set.csv')
+    # for i in tqdm(range(len(x_test))):
+    #     prediction = model.predict(x_test[i], batch_size=1, verbose=0)
+    #     classes = np.argmax(prediction, axis=1)
+    #     prob = prediction[0, classes]
+    #     y_pred.append(classes[0])
+    #     scores.append(prediction)
+    # y_pred = tf.keras.utils.to_categorical(y_pred, 3)
+    # result = pd.DataFrame({'id': name, 'y_pred':y_pred, 'y_true':y_true})
+    # result.to_csv('result.csv')
+    # y_pred = np.array(y_pred)
+    # y_true = np.array(y_true)
+    # print(y_true)
+    # test_acc = sum(y_pred == y_true) / len(y_true)
+    # print("[info] ", test_acc)
+    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    # print("Confusion matrix:\n",confusion_mtx)

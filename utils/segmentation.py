@@ -96,7 +96,7 @@ def validate(scan):
 if __name__=="__main__":
     base_path = '/Users/alicebizzarri/PycharmProjects/COVID-CT/dataset/unife/POS/'
     lista = os.listdir(base_path)
-    for path in tqdm(lista[:1]):
+    for path in tqdm(lista):
         try:
             directory = 'dataset/unife/png/' + path[:-7]
             if not os.path.exists(directory):
@@ -104,7 +104,9 @@ if __name__=="__main__":
             volume = nib.load(base_path+path).get_fdata()
             volume = np.transpose(volume)
             i = 0
-            for idx, scan in enumerate(volume[100:132]):
+            # centro = int(len(volume)/2)
+            # n = 50
+            for idx, scan in enumerate(volume):
                 # is_validate = validate(scan)
                 # if is_validate:
                 scan = _uint16_hu_to_uint8(scan)

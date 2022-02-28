@@ -148,12 +148,6 @@ if __name__ == '__main__':
             else:
                 spl = 'test'
                 print("TEST: ", row['filename'])
-           #  if row['label'] == 0:
-           #      n = 50
-           #  elif row['label'] == 1:
-           #      n = 10
-           #  elif row['label'] == 2:
-           #      n = 5
             centro = int(len(scans)/2)
             for s in scans[centro-n:centro+n]:
                     filename.append('dataset/unife/png/'+row['filename']+'/'+s)
