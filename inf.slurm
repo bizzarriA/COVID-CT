@@ -6,4 +6,4 @@
 #SBATCH -p m100_usr_prod
 #SBATCH --gres=gpu:1
 
-python unife_inference.py
+python test.py

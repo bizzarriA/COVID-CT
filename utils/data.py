@@ -14,21 +14,33 @@ from tqdm import tqdm
 def read_csv(base_path):
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    train_df = train_df[train_df['label']!=0]
+    train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    
     val_df = pd.read_csv(base_path + 'val_COVIDx_CT-2A.txt', sep=" ", header=None)
     val_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    val_df = val_df[val_df['label']!=0]
+    val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
 
     test_df = pd.read_csv(base_path + 'test_COVIDx_CT-2A.txt', sep=" ", header=None)
     test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-
+    test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    test_df = test_df[test_df['label']!=0]
     image_path = base_path + '2A_images/'  # directory path
     train_df['filename'] = image_path + train_df['filename']
     val_df['filename'] = image_path + val_df['filename']
     test_df['filename'] = image_path + test_df['filename']
+    
+    ## read unife and append
+    unife_df = pd.read_csv(base_path+'unife.csv')
+    unife_df = unife_df[unife_df['label']!=0]
+    train_df = pd.concat([train_df, unife_df[unife_df['split']=='train']])
+    val_df = pd.concat([val_df, unife_df[unife_df['split']=='val']])
+    test_df = pd.concat([test_df, unife_df[unife_df['split']=='val']])
+    
+    
     print("train: ",len(train_df),"val: ", len(val_df),"test: ", len(test_df))
-    return np.array(train_df), np.array(test_df), np.array(val_df)
+    return train_df, test_df, val_df
 
 
 def plot_img(data):
@@ -139,21 +151,13 @@ if __name__ == '__main__':
             scan = []
             scans = os.listdir('dataset/unife/png/'+row['filename'])
             n = 50
-            if i<n_train:
-                spl = 'train'
-                print("TRAIN: ", row['filename'])
-            elif i<n_val:
-                spl = 'val'
-                print("VAL: ", row['filename'])
-            else:
-                spl = 'test'
-                print("TEST: ", row['filename'])
-            centro = int(len(scans)/2)
-            for s in scans[centro-n:centro+n]:
+            for s in scans:
                     filename.append('dataset/unife/png/'+row['filename']+'/'+s)
                     label.append(row['label'])
-                    splits.append(spl)
+                    splits.append('test')
         except:
             print("ERRORE")
+    idx_test = random.choice(range(n_val*2))
+    
     new_csv = pd.DataFrame({'filename': filename, 'label':label, 'split':splits}).to_csv('dataset/unife/unife.csv')
 

@@ -12,7 +12,7 @@ def format_csv(csv):
             names.append(name[10:22])
         else:
             names.append(name[:6])
-        labels.append(row['y_true'][1])
+        labels.append(row['y_true'])
         y_preds.append(row['y_pred'])
     return pd.DataFrame({'id':names, 'y_t': labels, 'y_p':y_preds})
             
