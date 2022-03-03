@@ -28,7 +28,7 @@ def get_model(width=512, height=512):
     x = layers.Dense(units=512, activation="relu")(x)
     x = layers.Dropout(0.3)(x)
 
-    outputs = layers.Dense(units=3, activation="softmax")(x)
+    outputs = layers.Dense(units=2, activation="softmax")(x)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="3dcnn")
