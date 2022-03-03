@@ -22,20 +22,27 @@ if __name__=="__main__":
     print("read train images")
     x_train = []
     for name in tqdm(train_df["filename"][:n_train]):
-        print(name)
-        img = cv2.imread(name, 0) / 255
-        # img = cv2.resize(img, (256, 256))
-        img = np.expand_dims(img, axis=-1)
-        x_train.append(img)
+        try:
+            # print(name)
+            img = cv2.imread(name, 0) / 255
+            # img = cv2.resize(img, (256, 256))
+            img = np.expand_dims(img, axis=-1)
+            x_train.append(img)
+        except:
+            print("ERRORE ", name)
     x_train = np.array(x_train)
     y_train = tf.keras.utils.to_categorical(train_df["label"][:n_train], 3)
     print("read val images")
     x_val = []
     for name in tqdm(val_df["filename"][:n_val]):
-        img = cv2.imread(name, 0) / 255
-        # img = cv2.resize(img, (256, 256))
-        img = np.expand_dims(img, axis=-1)
-        x_val.append(img)
+        try:
+            # print(name)
+            img = cv2.imread(name, 0) / 255
+            img = cv2.resize(img, (256, 256))
+            img = np.expand_dims(img, axis=-1)
+            x_val.append(img)
+        except:
+            print("ERRORE ", name)
     x_val = np.array(x_val)
     y_val = tf.keras.utils.to_categorical(val_df["label"][:n_val], 3)
     print(np.shape(x_train[0]))

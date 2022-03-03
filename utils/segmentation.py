@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 
 _RESCALE_SLOPE = 1
-_RESCALE_INTERCEPT = -1024
+_RESCALE_INTERCEPT = -512
 
 IMG_EXTENSIONS = ('png', 'jpg', 'jpeg', 'tif', 'bmp')
 HU_WINDOW_WIDTH = 1500
@@ -20,8 +20,6 @@ def hu_to_uint8(hu_images, window_width, window_center):
     images = (hu_images.astype(np.float) - window_center + window_width/2)/window_width
     uint8_images = np.uint8(255.0*np.clip(images, 0.0, 1.0))
     return uint8_images
-
-
 
 def ensure_uint8(data, window_width=HU_WINDOW_WIDTH, window_center=HU_WINDOW_CENTER):
     """Converts non-uint8 data to uint8 and applies window level to HU data"""
@@ -85,40 +83,38 @@ def auto_body_crop(image, scale=1.0):
 
     return image[ymin:ymax, xmin:xmax], (xmin, ymin, xmax, ymax)
 
-def validate(scan):
-    shape = np.shape(scan)
-    number = np.count_nonzero(scan <= -320)
-    min = (shape[0])*(shape[1])*0.60
-    # print(number, max)
-    return number > min
+def normalize(volume):
+    """Normalize the volume"""
+    min = -1000
+    max = 400
+    volume[volume < min] = min
+    volume[volume > max] = max
+    # volume = (volume - min) / (max - min)
+    volume = volume.astype("float32")
+    return volume
+
 
 
 if __name__=="__main__":
     base_path = '/Users/alicebizzarri/PycharmProjects/COVID-CT/dataset/unife/POS/'
     lista = os.listdir(base_path)
+    n = 50
     for path in tqdm(lista):
         try:
             directory = 'dataset/unife/png/' + path[:-7]
             if not os.path.exists(directory):
                 os.makedirs(directory)
             volume = nib.load(base_path+path).get_fdata()
+            volume = normalize(volume)
             volume = np.transpose(volume)
             i = 0
-            # centro = int(len(volume)/2)
-            # n = 50
+            centro = int(len(volume)/2)
             for idx, scan in enumerate(volume):
-                # is_validate = validate(scan)
-                # if is_validate:
-                scan = _uint16_hu_to_uint8(scan)
-                scan, bbox = auto_body_crop(scan)
-                scan = cv2.resize(scan, (256, 256))
-                cv2.imwrite(directory+"/"+str(idx)+".png" , scan)
+                if idx in range(centro-n, centro+n):
+                    scan = _uint16_hu_to_uint8(scan)
+                    # scan = cv2.resize(scan, (256, 256))
+                    cv2.imwrite(directory+"/"+str(idx)+".png" , scan)#*255)
         except:
             print("[ERROR] lettura file", path )
-    # scan = _uint16_hu_to_uint8(volume[150,:,:])
-    # scan, bbox = auto_body_crop(scan)
-    # mask = np.zeros(np.shape(scan))
-    # mask[(scan<-320)] = 255
-    # plt.imshow(mask)
-    # plt.show()
+
     
