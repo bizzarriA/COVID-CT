@@ -12,12 +12,12 @@ from utils.model import get_model
 if __name__=="__main__":
     base_path="dataset/"
     current_path ='' # '/Users/alicebizzarri/PycharmProjects/COVID-CT/'
-    csv = pd.read_csv(base_path+'unife.csv')
-    csv = csv[csv['label']!=0]
-    train_df = csv[csv['split'] == 'train']
-    val_df = csv[csv['split'] == 'val']
-    test_df = csv[csv['split'] == 'test']
-    # train_df, test_df, val_df = read_csv(base_path)
+    # csv = pd.read_csv(base_path+'unife.csv')
+    # csv = csv[csv['label']!=0]
+    # train_df = csv[csv['split'] == 'train']
+    # val_df = csv[csv['split'] == 'val']
+    # test_df = csv[csv['split'] == 'test']
+    train_df, test_df, val_df = read_csv(base_path)
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
     # n_train, n_val, n_test = 100, 13, 10
     
@@ -46,14 +46,14 @@ if __name__=="__main__":
     x_val = np.array(x_val)
     y_val = tf.keras.utils.to_categorical(val_df["label"][:n_val]-1, 2)
     print(np.shape(x_train[0]))
-    model = tf.keras.models.load_model(current_path + 'model/model_bin_20220302-191317')
-    # model = get_model(width=256, height=256)
+    # model = tf.keras.models.load_model(current_path + 'model/model_bin_20220302-191317')
+    model = get_model(width=256, height=256)
     model.summary()
     fine_tune_at = -7
 
     # Freeze all the layers before the `fine_tune_at` layer
-    for layer in model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # for layer in model.layers[:fine_tune_at]:
+    #     layer.trainable = False
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
