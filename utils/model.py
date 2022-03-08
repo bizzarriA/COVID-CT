@@ -3,7 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 
-def get_model(width=512, height=512):
+def get_model(width=512, height=512, n_class = 3):
     """Build a 3D convolutional neural network model."""
 
     inputs = keras.Input((width, height, 1))
@@ -28,7 +28,7 @@ def get_model(width=512, height=512):
     x = layers.Dense(units=512, activation="relu")(x)
     x = layers.Dropout(0.3)(x)
 
-    outputs = layers.Dense(units=2, activation="softmax")(x)
+    outputs = layers.Dense(units=n_class, activation="softmax")(x)
 
     # Define the model.
     model = keras.Model(inputs, outputs, name="3dcnn")
