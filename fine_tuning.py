@@ -16,7 +16,7 @@ if __name__=="__main__":
     base_path="dataset/"
     train_df, test_df, val_df = read_csv(base_path)
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
-    # n_train, n_val, n_test = 100, 13, 10
+    n_train, n_val, n_test = 100, 13, 10
     
     print("read train images")
     x_train = []
@@ -60,8 +60,16 @@ if __name__=="__main__":
     x_val = np.array(x_val)
     y_val = np.array(y_val)
     print(np.shape(x_train[0]))
+    ### Mirrored strategy ###
+    mirrored_strategy = tf.distribute.MirroredStrategy()
+    BATCH_SIZE_PER_REPLICA = 16
+    global_batch_size = (BATCH_SIZE_PER_REPLICA *
+                         mirrored_strategy.num_replicas_in_sync)
+    
     # model = tf.keras.models.load_model(current_path + 'model/model_bin_20220302-191317')
-    model = get_model(width=256, height=256)
+    with mirrored_strategy.scope():
+        model = get_model(width=256, height=256)
+    
     model.summary()
     # fine_tune_at = -7
 
@@ -93,7 +101,7 @@ if __name__=="__main__":
         validation_data=(x_val, y_val),
         epochs=25,
         callbacks=callbacks,
-        batch_size=32,
+        batch_size=global_batch_size,
         shuffle=True,
         verbose=1
     )

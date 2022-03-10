@@ -31,5 +31,5 @@ def get_model(width=512, height=512, n_class = 3):
     outputs = layers.Dense(units=n_class, activation="softmax")(x)
 
     # Define the model.
-    model = keras.Model(inputs, outputs, name="3dcnn")
+    model = keras.Model(inputs, outputs, name="covid-net")
     return model
