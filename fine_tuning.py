@@ -7,16 +7,25 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from utils.data import read_slice, read_csv
-from utils.model import get_model
+from utils.model import get_model, semple_model
 
 N_CLASSI = 3
 CLASSI = ['Normal', 'Common_pneuma', 'Covid_19']
+ISIZE = 256
 
 if __name__=="__main__":
     base_path="dataset/"
     train_df, test_df, val_df = read_csv(base_path)
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
-    n_train, n_val, n_test = 100, 13, 10
+    #n_train, n_val, n_test = 100, 13, 10
+    
+    tf.keras.backend.clear_session()
+    
+    # Check for TensorFlow GPU access
+    print(tf.config.list_physical_devices())
+
+    # See TensorFlow version
+    print(tf.__version__)
     
     print("read train images")
     x_train = []
@@ -28,7 +37,7 @@ if __name__=="__main__":
                 img = cv2.imread(name, 0) / 255
                 bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
                 img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-                img = cv2.resize(img, (256, 256))
+                img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img)
                 y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
@@ -49,7 +58,7 @@ if __name__=="__main__":
                 img = cv2.imread(name, 0) / 255
                 bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
                 img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-                img = cv2.resize(img, (256, 256))
+                img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_val.append(img)
                 y_val.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
@@ -60,6 +69,7 @@ if __name__=="__main__":
     x_val = np.array(x_val)
     y_val = np.array(y_val)
     print(np.shape(x_train[0]))
+    
     ### Mirrored strategy ###
     mirrored_strategy = tf.distribute.MirroredStrategy()
     BATCH_SIZE_PER_REPLICA = 16
@@ -67,8 +77,14 @@ if __name__=="__main__":
                          mirrored_strategy.num_replicas_in_sync)
     
     # model = tf.keras.models.load_model(current_path + 'model/model_bin_20220302-191317')
+    dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train)).batch(global_batch_size)#.repeat()
+    options = tf.data.Options()
+    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+    dataset = dataset.with_options(options)
+    # dataset = mirrored_strategy.experimental_distribute_dataset(dataset)
+
     with mirrored_strategy.scope():
-        model = get_model(width=256, height=256)
+        model = get_model(width=ISIZE, height=ISIZE)
     
     model.summary()
     # fine_tune_at = -7
@@ -87,7 +103,7 @@ if __name__=="__main__":
                  early_stopping_cb
                  ]
 
-    optimizer = tf.keras.optimizers.Adam(0.001)  # * hvd.size())
+    optimizer = tf.keras.optimizers.SGD() 
     print("[INFO] Model compile")
     model.compile(
         loss="categorical_crossentropy",
@@ -97,10 +113,11 @@ if __name__=="__main__":
     #print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     #print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
-        x_train, y_train,
+        dataset,
         validation_data=(x_val, y_val),
         epochs=25,
         callbacks=callbacks,
+        # steps_per_epoch = 100,
         batch_size=global_batch_size,
         shuffle=True,
         verbose=1

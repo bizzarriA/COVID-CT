@@ -28,7 +28,7 @@ def read_csv(base_path):
     train_df['filename'] = image_path + train_df['filename']
     val_df['filename'] = image_path + val_df['filename']
     test_df['filename'] = image_path + test_df['filename']
-    
+    print(test_df)
     # ## read unife and append
     # unife_df = pd.read_csv(base_path+'unife.csv')
     # unife_df = unife_df[unife_df['label']!=0]
@@ -136,49 +136,18 @@ def load_and_process(row=None, path=None):
 
 
 if __name__=="__main__":
-    from gradcam import GradCAM
-    from tensorflow.keras.applications import ResNet50
-    from tensorflow.keras.applications import VGG16
     from tensorflow.keras.preprocessing.image import img_to_array
     from tensorflow.keras.preprocessing.image import load_img
+    from tensorflow.keras.applications import imagenet_utils
     import numpy as np
-    import cv2
+    import argparse
     import imutils
+    import cv2
+
+    image = load_img('dataset/Patient 1/CT/IMG-0001-00100.jpg', target_size=(224, 224))
+    # print(image.min(), image.max())
+    image = img_to_array(image)
+    print(image.min(), image.max())
+    image = np.expand_dims(image, axis=0)
     
-    
-    path = os.listdir('dataset/2A_images/')
-    orig = cv2.imread('dataset/2A_images/'+path[0])
-    gray = cv2.cvtColor(orig, cv2.COLOR_BGR2GRAY)
-    resize = cv2.resize(gray, (256, 256))
-    expand = np.expand_dims(resize, axis=0)
-    
-    model = tf.keras.models.load_model('model/model_jpeg_20220223-200225/')
-    model.summary()
-    
-    # preds = model.predict(expand, batch_size=1)
-    i = 2 #np.argmax(preds[0])
-    # decode the ImageNet predictions to obtain the human-readable label
-    # decoded = imagenet_utils.decode_predictions(preds)
-    # (imagenetID, label, prob) = decoded[0][0]
-    # label = "{}: {:.2f}%".format(label, prob * 100)
-    # print("[INFO] {}".format(label))
-    
-    cam = GradCAM(model, i, layerName="batch_normalization_3")
-    heatmap = cam.compute_heatmap(expand)
-    # resize the resulting heatmap to the original input image dimensions
-    # and then overlay heatmap on top of the image
-    heatmap = cv2.resize(heatmap, (orig.shape[1], orig.shape[0]))
-    (heatmap, output) = cam.overlay_heatmap(heatmap, orig, alpha=0.5)
-    classi = ['Normal', 'Common_pneuma', 'Covid_19']
-    label = classi[i]
-    cv2.rectangle(output, (0, 0), (340, 40), (0, 0, 0), -1)
-    cv2.putText(output, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX,
-    0.8, (255, 255, 255), 2)
-    # display the original image and resulting heatmap and output image
-    # to our screen
-    # output = np.vstack([orig, heatmap, output])
-    # output = imutils.resize(output, height=700)
-    cv2.imshow("Output", output*255)
-    cv2.waitKey(0)
-    
-    
+
