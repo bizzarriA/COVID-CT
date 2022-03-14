@@ -28,7 +28,7 @@ def read_csv(base_path):
     train_df['filename'] = image_path + train_df['filename']
     val_df['filename'] = image_path + val_df['filename']
     test_df['filename'] = image_path + test_df['filename']
-    
+    print(test_df)
     # ## read unife and append
     # unife_df = pd.read_csv(base_path+'unife.csv')
     # unife_df = unife_df[unife_df['label']!=0]
@@ -135,27 +135,19 @@ def load_and_process(row=None, path=None):
 
 
 
-if __name__ == '__main__':
-    csv = pd.read_csv('dataset/unife/test_set_unife.csv')
-    filename = []
-    label = []
-    splits = []
-    csv = csv.sample(frac=1).reset_index()
-    print(csv)
-    n_train = int(len(csv))*0.70
-    n_val = n_train + int(len(csv))*0.15
-    for i, row in csv.iterrows():
-        try:
-            scan = []
-            scans = os.listdir('dataset/unife/png/'+row['filename'])
-            n = 50
-            for s in scans:
-                    filename.append('dataset/unife/png/'+row['filename']+'/'+s)
-                    label.append(row['label'])
-                    splits.append('test')
-        except:
-            print("ERRORE")
-    idx_test = random.choice(range(n_val*2))
+if __name__=="__main__":
+    from tensorflow.keras.preprocessing.image import img_to_array
+    from tensorflow.keras.preprocessing.image import load_img
+    from tensorflow.keras.applications import imagenet_utils
+    import numpy as np
+    import argparse
+    import imutils
+    import cv2
+
+    image = load_img('dataset/Patient 1/CT/IMG-0001-00100.jpg', target_size=(224, 224))
+    # print(image.min(), image.max())
+    image = img_to_array(image)
+    print(image.min(), image.max())
+    image = np.expand_dims(image, axis=0)
     
-    new_csv = pd.DataFrame({'filename': filename, 'label':label, 'split':splits}).to_csv('dataset/unife/unife.csv')
 
