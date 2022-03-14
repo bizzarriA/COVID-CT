@@ -81,7 +81,7 @@ def auto_body_crop(image, scale=1.0):
     return image[ymin:ymax, xmin:xmax], (xmin, ymin, xmax, ymax)
 
 
-base_path = "/m100_scratch/ictcf.biocuckoo.cn/patient/"
+base_path = "../ictcf.biocuckoo.cn/patient/"
 csv = pd.read_csv("dati_clinici_superfinal.csv")
 ids = np.array(csv["id"])
 covids = np.array(csv['covid'])
@@ -90,7 +90,7 @@ directory = base_path + 'preprocessed'
 print("[INFO]", directory)
 if not os.path.exists(directory):
     os.makedirs(directory)
-for name, covid, ct in zip(ids, covids, CTs):
+for name, covid, ct in zip(ids[:1], covids[:1], CTs[:1]):
     if ct == "Positive" and covid == "Positive":
         label = "2_covid"
     elif ct == "Positive" and covid =="Negative":
@@ -102,7 +102,15 @@ for name, covid, ct in zip(ids, covids, CTs):
     name = name.replace(" ", "_")
     name = name.replace("P", "p") + ".nii.gz"
     print("[INFO]", name)
-    os.system(f"python utils/nii2png.py -i {base_path}nifti/{name} -o {directory}/{label}/")
-        
+    # os.system(f"python utils/nii2png.py -i {base_path}nifti/{name} -o {directory}/{label}/{name[:-7]}")
+    imgs = os.listdir(f"{directory}/{label}/{name[:-7]}/")
+    for indx, p in enumerate(imgs):
+        image = cv2.imread(f"{directory}/{label}/{name[:-7]}/{p}", 0)
+        #try:
+        image, _ = auto_body_crop(image)
+        cv2.imwrite(f"{directory}/{label}/{name[:-7]}_{idx}.png", image)
+        #except:
+        #    print("ERRORE:", name[:-7])
+
 
 
