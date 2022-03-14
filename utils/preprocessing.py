@@ -81,12 +81,13 @@ def auto_body_crop(image, scale=1.0):
     return image[ymin:ymax, xmin:xmax], (xmin, ymin, xmax, ymax)
 
 
-base_path = "../ictcf.biocuckoo.cn/patient/"
+# base_path = "../ictcf.biocuckoo.cn/patient/"
+base_path = "dataset/"
 csv = pd.read_csv("dati_clinici_superfinal.csv")
 ids = np.array(csv["id"])
 covids = np.array(csv['covid'])
 CTs = np.array(csv['CT'])
-directory = base_path + 'preprocessed'
+directory = base_path + 'prova'
 print("[INFO]", directory)
 if not os.path.exists(directory):
     os.makedirs(directory)
@@ -102,9 +103,9 @@ for name, covid, ct in zip(ids[:1], covids[:1], CTs[:1]):
     name = name.replace(" ", "_")
     name = name.replace("P", "p") + ".nii.gz"
     print("[INFO]", name)
-    # os.system(f"python utils/nii2png.py -i {base_path}nifti/{name} -o {directory}/{label}/{name[:-7]}")
+    os.system(f"python utils/nii2png.py -i {base_path}nifti/{name} -o {directory}/{label}/{name[:-7]}")
     imgs = os.listdir(f"{directory}/{label}/{name[:-7]}/")
-    for indx, p in enumerate(imgs):
+    for idx, p in enumerate(imgs):
         image = cv2.imread(f"{directory}/{label}/{name[:-7]}/{p}", 0)
         #try:
         image, _ = auto_body_crop(image)
