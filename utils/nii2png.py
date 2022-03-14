@@ -16,6 +16,9 @@ import sys, getopt
 
 import imageio
 
+import sys
+import warnings
+import numpy as np
 
 def hu_to_uint8(hu_images, window_width, window_center):
     """Converts HU images to uint8 images"""
@@ -40,24 +43,24 @@ def main(argv):
         elif opt in ("-o", "--output"):
             outputfile = arg
 
-    print('Input file is ', inputfile)
-    print('Output folder is ', outputfile)
+    #print('Input file is ', inputfile)
+    #print('Output folder is ', outputfile)
 
     # set fn as your 4d nifti file
     image_array = nibabel.load(inputfile).get_data()
-    image_array = image_array.transpose(2, 1, 0)
-    print(len(image_array.shape))
+    # image_array = image_array.transpose(2, 1, 0)
+    # print(len(image_array.shape))
 
     # ask if rotate
     #ask_rotate = input('Would you like to rotate the orientation? (y/n) ')
     ask_rotate = 'y'
     if ask_rotate.lower() == 'y':
         ask_rotate_num = 270 # int(input('OK. By 90° 180° or 270°? '))
-        if ask_rotate_num == 90 or ask_rotate_num == 180 or ask_rotate_num == 270:
-            print('Got it. Your images will be rotated by {} degrees.'.format(ask_rotate_num))
-        else:
-            print('You must enter a value that is either 90, 180, or 270. Quitting...')
-            sys.exit()
+        #if ask_rotate_num == 90 or ask_rotate_num == 180 or ask_rotate_num == 270:
+            #print('Got it. Your images will be rotated by {} degrees.'.format(ask_rotate_num))
+        #else:
+         #   print('You must enter a value that is either 90, 180, or 270. Quitting...')
+          #  sys.exit()
     elif ask_rotate.lower() == 'n':
         print('OK, Your images will be converted it as it is.')
     else:
@@ -88,7 +91,7 @@ def main(argv):
                     # rotate or no rotate
                     if ask_rotate.lower() == 'y':
                         if ask_rotate_num == 90 or ask_rotate_num == 180 or ask_rotate_num == 270:
-                            print('Rotating image...')
+                            #print('Rotating image...')
                             if ask_rotate_num == 90:
                                 data = numpy.rot90(image_array[:, :, current_slice, current_volume])
                             elif ask_rotate_num == 180:
@@ -99,17 +102,17 @@ def main(argv):
                         data = image_array[:, :, current_slice, current_volume]
                             
                     #alternate slices and save as png
-                    print('Saving image...')
+                   # print('Saving image...')
                     image_name = inputfile[:-4] + "_t" + "{:0>3}".format(str(current_volume+1)) + "_z" + "{:0>3}".format(str(current_slice+1))+ ".png"
                     imageio.imwrite(image_name, data)
-                    print('Saved.')
+                  #  print('Saved.')
 
                     #move images to folder
-                    print('Moving files...')
+                  #  print('Moving files...')
                     src = image_name
                     shutil.move(src, outputfile)
                     slice_counter += 1
-                    print('Moved.')
+                   # print('Moved.')
 
         print('Finished converting images')
 
@@ -121,9 +124,9 @@ def main(argv):
         # set destination folder
         if not os.path.exists(outputfile):
             os.makedirs(outputfile)
-            print("Created ouput directory: " + outputfile)
+            #print("Created ouput directory: " + outputfile)
 
-        print('Reading NIfTI file...')
+        #print('Reading NIfTI file...')
 
         total_slices = image_array.shape[2]
 
@@ -146,22 +149,26 @@ def main(argv):
 
                 #alternate slices and save as png
                 if (slice_counter % 1) == 0:
-                    print('Saving image...')
+                  #  print('Saving image...')
                     image_name = inputfile[:-4] + "_z" + "{:0>3}".format(str(current_slice+1))+ ".png"
+                    data = data.astype(np.uint8)
                     imageio.imwrite(image_name, data)
-                    print('Saved.')
+                   # print('Saved.')
 
                     #move images to folder
-                    print('Moving image...')
+                    #print('Moving image...')
                     src = image_name
                     shutil.move(src, outputfile)
                     slice_counter += 1
-                    print('Moved.')
+                    #print('Moved.')
 
-        print('Finished converting images')
+        #print('Finished converting images')
     else:
         print('Not a 3D or 4D Image. Please try again.')
 
 # call the function to start the program
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    
+    if not sys.warnoptions:
+        warnings.simplefilter("ignore")
+    main(sys.argv[1:])

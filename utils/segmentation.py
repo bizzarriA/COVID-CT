@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import nibabel as nib
 import numpy as np
 import os
+import pandas as pd
 from tqdm import tqdm
 
 
@@ -96,25 +97,18 @@ def normalize(volume):
 
 
 if __name__=="__main__":
-    base_path = '/Users/alicebizzarri/PycharmProjects/COVID-CT/dataset/unife/POS/'
-    lista = os.listdir(base_path)
-    n = 50
-    for path in tqdm(lista):
-        try:
-            directory = 'dataset/unife/png/' + path[:-7]
-            if not os.path.exists(directory):
-                os.makedirs(directory)
-            volume = nib.load(base_path+path).get_fdata()
-            volume = normalize(volume)
-            volume = np.transpose(volume)
-            i = 0
-            centro = int(len(volume)/2)
-            for idx, scan in enumerate(volume):
-                if idx in range(centro-n, centro+n):
-                    scan = _uint16_hu_to_uint8(scan)
-                    # scan = cv2.resize(scan, (256, 256))
-                    cv2.imwrite(directory+"/"+str(idx)+".png" , scan)#*255)
-        except:
-            print("[ERROR] lettura file", path )
+    csv = pd.read_csv("dataset/metadata.txt")
+    csv = np.array(csv[csv["source"]=="iCTCF"]["patient id"])
+    csv = [name.replace("HUST-", "") for name in csv]
+    print(csv)
+    for i in range(1522):
+        name = f"Patient%20{i}.zip"
+        print(name)
+        if f"Patient{i}" in csv:
+            continue
+        elif not os.path.exists(f"COVID-CT/ictcf.biocuckoo.cn/patient/CT/{name}"):
+            print("download paziente: ", i)
+            os.system(f"wget http://ictcf.biocuckoo.cn/patient/CT/{name} --directory-prefix=PREFISSO dataset/ICTCF/") 
 
     
+#http://ictcf.biocuckoo.cn/patient/CT/Patient%201260.zip
