@@ -5,7 +5,6 @@
 #SBATCH -N 1
 #SBATCH -p m100_usr_prod
 #SBATCH --gres=gpu:2
-#SBATCH --ntasks-per-node=2
 #SBATCH --mem=246000
 
 python fine_tuning.py
