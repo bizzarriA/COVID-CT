@@ -91,13 +91,28 @@ directory = base_path + 'prova'
 print("[INFO]", directory)
 if not os.path.exists(directory):
     os.makedirs(directory)
-for name, covid, ct in zip(ids[:1], covids[:1], CTs[:1]):
+normal = len(csv[csv["CT"]=="Negative"])
+common = len(csv[csv["CT"]=="Positive"][csv["covid"]=="Negative"])
+covid = len(csv[csv["CT"]=="Positive"][csv["covid"]=="Positive"])
+n_classi = [int(normal*0.8), int(common*0.8), int(covid*0.8)]
+print(n_classi)
+#n_classi = [1,1,1]
+#ids = ['patient_46', 'patient_47']
+#covids = ['Negative', 'Negative']
+#CTs = ['Positive', 'Positive']
+for name, covid, ct in zip(ids, covids, CTs):
     if ct == "Positive" and covid == "Positive":
         label = "2_covid"
+        n = n_classi[2]
+        n_classi[2]-=1
     elif ct == "Positive" and covid =="Negative":
         label = "1_common"
+        n = n_classi[1]
+        n_classi[1]-=1
     elif ct == "Negative":
         label="0_normal"
+        n = n_classi[0]
+        n_classi[0]-=1
     else:
         continue
     name = name.replace(" ", "_")
@@ -112,6 +127,3 @@ for name, covid, ct in zip(ids[:1], covids[:1], CTs[:1]):
         cv2.imwrite(f"{directory}/{label}/{name[:-7]}_{idx}.png", image)
         #except:
         #    print("ERRORE:", name[:-7])
-
-
-
