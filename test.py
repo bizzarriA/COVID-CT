@@ -5,7 +5,9 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from utils.data import read_csv
+from utils.preprocessing import auto_body_crop
 
+ISIZE = 256
 if __name__=='__main__':
     current_path = '' #'/Users/alicebizzarri/PycharmProjects/COVID-CT/'
     base_path = current_path + 'dataset/'
@@ -19,26 +21,26 @@ if __name__=='__main__':
     # test_df = test_df.sample(frac=1)
     print(test_df.values.tolist()[0])
     test_df = np.array(test_df)
-    test_df = [row for row in test_df if "HUST" in row[0]]
+    test_df = test_df#[300:800]
     print(test_df[-5:])
     n =  len(test_df)
     print(n)
         # n = 10
     for row in tqdm(test_df):
         name = row[0]
-        if "HUST-Patient" in name:
-            try:
-                # print("[INFO] immagine utilizzabile: ", name)
-                img = cv2.imread(name, 0) / 255
-                bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
-                img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-                img = cv2.resize(img, (256, 256))
+        #if "HUST-Patient" in name:
+        try:
+            # print("[INFO] immagine utilizzabile: ", name)
+            name = row[0]
+            img = cv2.imread(name, 0) 
+            img, validate = auto_body_crop(img)
+            if validate:
+                img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_test.append(img)
                 y_test.append(row[1])
-                filename.append(name)
-            except:
-                print("ERRORE ", name)
+        except:
+            print("ERRORE ", name)
         # else:
             # print("[INFO] immagine inutile: ", name)
             # break
@@ -62,5 +64,5 @@ if __name__=='__main__':
     print(test_acc)
     confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
     print("Confusion matrix:\n",confusion_mtx)
-    result = pd.DataFrame({'id': filename, 'y_pred':y_pred, 'y_true':y_true})
-    result.to_csv('result_3_class.csv')
+    # result = pd.DataFrame({'id': filename, 'y_pred':y_pred, 'y_true':y_true})
+    # result.to_csv('result_3_class.csv')

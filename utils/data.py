@@ -144,10 +144,10 @@ if __name__=="__main__":
     import imutils
     import cv2
 
-    image = load_img('dataset/Patient 1/CT/IMG-0001-00100.jpg', target_size=(224, 224))
-    # print(image.min(), image.max())
-    image = img_to_array(image)
-    print(image.min(), image.max())
-    image = np.expand_dims(image, axis=0)
+    base_path = 'dataset/2A_images/'
+    elenco = os.listdir(base_path)
+    for path in elenco:
+        cv2.imread(base_path+path)
+    
     
 

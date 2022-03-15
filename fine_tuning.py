@@ -6,8 +6,9 @@ import pandas as pd
 import tensorflow as tf
 from tqdm import tqdm
 
-from utils.data import read_slice, read_csv
-from utils.model import get_model, semple_model
+from utils.data import read_csv
+from utils.model import get_model
+from utils.preprocessing import auto_body_crop
 
 N_CLASSI = 3
 CLASSI = ['Normal', 'Common_pneuma', 'Covid_19']
@@ -25,20 +26,20 @@ if __name__=="__main__":
         if i < n_train:
             try:
                 name = row[0]
-                img = cv2.imread(name, 0) / 255
-                bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
-                img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-                img = cv2.resize(img, (ISIZE, ISIZE))
-                img = np.expand_dims(img, axis=-1)
-                x_train.append(img)
-                y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
+                img = cv2.imread(name, 0) 
+                img, validate = auto_body_crop(img)
+                if validate:
+                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = np.expand_dims(img, axis=-1)
+                    x_train.append(img)
+                    y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
                 print("ERRORE ", name)
         else:
             break
     x_train = np.array(x_train)
     y_train = np.array(y_train)
-    
+    print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     print("read val images")
     x_val = []
     y_val = []
@@ -46,13 +47,13 @@ if __name__=="__main__":
         if i < n_val:
             try:
                 name = row[0]
-                img = cv2.imread(name, 0) / 255
-                bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
-                img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-                img = cv2.resize(img, (ISIZE, ISIZE))
-                img = np.expand_dims(img, axis=-1)
-                x_val.append(img)
-                y_val.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
+                img = cv2.imread(name, 0)
+                img, validate = auto_body_crop(img)
+                if validate:
+                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = np.expand_dims(img, axis=-1)
+                    x_val.append(img)
+                    y_val.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
                 print("ERRORE ", name)
         else:
@@ -60,7 +61,7 @@ if __name__=="__main__":
     x_val = np.array(x_val)
     y_val = np.array(y_val)
     print(np.shape(x_train[0]))
-    
+    print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     ### Mirrored strategy ###
     mirrored_strategy = tf.distribute.MirroredStrategy()
     BATCH_SIZE_PER_REPLICA = 16
@@ -102,8 +103,7 @@ if __name__=="__main__":
         optimizer=optimizer,
         metrics=['acc'],
     )
-    #print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
-    #print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
+    
     model.fit(
         dataset,
         validation_data=(x_val, y_val),

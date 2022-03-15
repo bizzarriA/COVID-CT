@@ -97,7 +97,7 @@ def normalize(volume):
 
 
 if __name__=="__main__":
-    csv = pd.read_csv("dataset/metadata.txt")
+    csv = pd.read_csv("dataset/metadata.csv")
     csv = np.array(csv[csv["source"]=="iCTCF"]["patient id"])
     csv = [name.replace("HUST-", "") for name in csv]
     print(csv)
@@ -106,9 +106,9 @@ if __name__=="__main__":
         print(name)
         if f"Patient{i}" in csv:
             continue
-        elif not os.path.exists(f"COVID-CT/ictcf.biocuckoo.cn/patient/CT/{name}"):
+        elif not os.path.exists(f"dataset/ICTCF/{name}"):
             print("download paziente: ", i)
-            os.system(f"wget http://ictcf.biocuckoo.cn/patient/CT/{name} --directory-prefix=PREFISSO dataset/ICTCF/") 
+            os.system(f"/opt/homebrew/bin/wget http://ictcf.biocuckoo.cn/patient/CT/{name} --directory-prefix=dataset/ICTCF/{name}") 
 
     
 #http://ictcf.biocuckoo.cn/patient/CT/Patient%201260.zip

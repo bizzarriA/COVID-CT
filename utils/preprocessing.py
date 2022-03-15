@@ -75,55 +75,61 @@ def auto_body_crop(image, scale=1.0):
         xmax = int(center[0] + width/2)
         ymin = int(center[1] - height/2)
         ymax = int(center[1] + height/2)
-        
+    
+    nx = int(np.shape(image)[0]*0.30)  
+    ny = int(np.shape(image)[1]*0.30)        
     #draw it
-
-    return image[ymin:ymax, xmin:xmax], (xmin, ymin, xmax, ymax)
-
-
-# base_path = "../ictcf.biocuckoo.cn/patient/"
-base_path = "dataset/"
-csv = pd.read_csv("dati_clinici_superfinal.csv")
-ids = np.array(csv["id"])
-covids = np.array(csv['covid'])
-CTs = np.array(csv['CT'])
-directory = base_path + 'prova'
-print("[INFO]", directory)
-if not os.path.exists(directory):
-    os.makedirs(directory)
-normal = len(csv[csv["CT"]=="Negative"])
-common = len(csv[csv["CT"]=="Positive"][csv["covid"]=="Negative"])
-covid = len(csv[csv["CT"]=="Positive"][csv["covid"]=="Positive"])
-n_classi = [int(normal*0.8), int(common*0.8), int(covid*0.8)]
-print(n_classi)
-#n_classi = [1,1,1]
-#ids = ['patient_46', 'patient_47']
-#covids = ['Negative', 'Negative']
-#CTs = ['Positive', 'Positive']
-for name, covid, ct in zip(ids, covids, CTs):
-    if ct == "Positive" and covid == "Positive":
-        label = "2_covid"
-        n = n_classi[2]
-        n_classi[2]-=1
-    elif ct == "Positive" and covid =="Negative":
-        label = "1_common"
-        n = n_classi[1]
-        n_classi[1]-=1
-    elif ct == "Negative":
-        label="0_normal"
-        n = n_classi[0]
-        n_classi[0]-=1
+    if xmax-xmin>nx and ymax-ymin>ny:
+        validate = True
     else:
-        continue
-    name = name.replace(" ", "_")
-    name = name.replace("P", "p") + ".nii.gz"
-    print("[INFO]", name)
-    os.system(f"python utils/nii2png.py -i {base_path}nifti/{name} -o {directory}/{label}/{name[:-7]}")
-    imgs = os.listdir(f"{directory}/{label}/{name[:-7]}/")
-    for idx, p in enumerate(imgs):
-        image = cv2.imread(f"{directory}/{label}/{name[:-7]}/{p}", 0)
-        #try:
-        image, _ = auto_body_crop(image)
-        cv2.imwrite(f"{directory}/{label}/{name[:-7]}_{idx}.png", image)
-        #except:
-        #    print("ERRORE:", name[:-7])
+        validate = False
+        
+    return image[ymin:ymax, xmin:xmax], validate
+
+if __name__=="__main__":
+    # base_path = "../ictcf.biocuckoo.cn/patient/"
+    base_path = "dataset/"
+    csv = pd.read_csv("dati_clinici_superfinal.csv")
+    ids = np.array(csv["id"])
+    covids = np.array(csv['covid'])
+    CTs = np.array(csv['CT'])
+    directory = base_path + 'prova'
+    print("[INFO]", directory)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    normal = len(csv[csv["CT"]=="Negative"])
+    common = len(csv[csv["CT"]=="Positive"][csv["covid"]=="Negative"])
+    covid = len(csv[csv["CT"]=="Positive"][csv["covid"]=="Positive"])
+    n_classi = [int(normal*0.8), int(common*0.8), int(covid*0.8)]
+    print(n_classi)
+    #n_classi = [1,1,1]
+    #ids = ['patient_46', 'patient_47']
+    #covids = ['Negative', 'Negative']
+    #CTs = ['Positive', 'Positive']
+    for name, covid, ct in zip(ids, covids, CTs):
+        if ct == "Positive" and covid == "Positive":
+            label = "2_covid"
+            n = n_classi[2]
+            n_classi[2]-=1
+        elif ct == "Positive" and covid =="Negative":
+            label = "1_common"
+            n = n_classi[1]
+            n_classi[1]-=1
+        elif ct == "Negative":
+            label="0_normal"
+            n = n_classi[0]
+            n_classi[0]-=1
+        else:
+            continue
+        name = name.replace(" ", "_")
+        name = name.replace("P", "p") + ".nii.gz"
+        print("[INFO]", name)
+        os.system(f"python utils/nii2png.py -i {base_path}nifti/{name} -o {directory}/{label}/{name[:-7]}")
+        imgs = os.listdir(f"{directory}/{label}/{name[:-7]}/")
+        for idx, p in enumerate(imgs):
+            image = cv2.imread(f"{directory}/{label}/{name[:-7]}/{p}", 0)
+            #try:
+            image, _ = auto_body_crop(image)
+            cv2.imwrite(f"{directory}/{label}/{name[:-7]}_{idx}.png", image)
+            #except:
+            #    print("ERRORE:", name[:-7])

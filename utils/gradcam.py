@@ -5,21 +5,24 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import pandas as pd
 
-def load_and_preprocess(image_files, bbox, width=256, height=256):
+from preprocessing import auto_body_crop
+
+def load_and_preprocess(image_files, width=256, height=256):
     """Loads and preprocesses images for inference"""
     images = []
     for image_file in image_files:
         # Load and crop image
         image = cv2.imread(image_file, cv2.IMREAD_GRAYSCALE)
-        image = image[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-        image = cv2.resize(image, (width, height), cv2.INTER_CUBIC)
+        image, validate = auto_body_crop(image)
+        if not validate:
+            image = cv2.resize(image, (width, height), cv2.INTER_CUBIC)
 
-        # Convert to float in range [0, 1] and stack to 3-channel
-        image = image.astype(np.float32) / 255.0
-        # image = np.stack((image, image, image), axis=-1)
-        
-        # Add to image set
-        images.append(image)
+            # Convert to float in range [0, 1] and stack to 3-channel
+            image = image.astype(np.float32) / 255.0
+            # image = np.stack((image, image, image), axis=-1)
+            
+            # Add to image set
+            images.append(image)
     
     return np.array(images)
 
@@ -30,7 +33,7 @@ def run_gradcam(model, layerName, image, classIdx, eps=1e-8):
     # to our pre-trained model, (2) the output of the (presumably)
     # final 4D layer in the network, and (3) the output of the
     # softmax activations from the model
-    print("[INFO] Layer Name: ", layerName)
+    # print("[INFO] Layer Name: ", layerName)
     gradModel = tf.keras.Model(
         inputs=[model.inputs],
         outputs=[model.get_layer(layerName).output,
@@ -111,8 +114,8 @@ model = tf.keras.models.load_model('model/model_3class_ft_20220311-173216')
 model.summary()
 # Select image file
 
-base_path = f'dataset/test/{CLASSE}/'
-image_files = os.listdir(base_path)
+base_path = f'dataset/2A_images/'
+# image_files = os.listdir(base_path)
 # image_files = ['LIDC-IDRI-0273-1.3.6.1.4.1.14519.5.2.1.6279.6001.268992195564407418480563388746-0093.png',
 #               'CP_5_3509_0130.png',
 #               'HUST-Patient1314-0348.png']
@@ -122,31 +125,34 @@ images = []
 hmaps = []
 idxs = []
 confidences = []
-for image_file in image_files[:100]:
-    # Prepare image
-    bboxs = np.array(csv[csv['filename']==image_file])
-    bboxs = ([int(bboxs[0][2]), int(bboxs[0][3]), int(bboxs[0][4]), int(bboxs[0][5])])
-    image = load_and_preprocess([base_path + image_file], bboxs)
-    preds = model.predict(image, batch_size=1)
-    classIdx = np.argmax(preds)
+csv = csv.sample(n=100)
+image_files = np.array(csv['filename'])
+for image_file in image_files:
+    # Prepare imags
+    try:
+        image = load_and_preprocess([base_path + image_file])
+        preds = model.predict(image, batch_size=1)
+        classIdx = np.argmax(preds)
 
-    # Run Grad-CAM
-    if LAYERNAME is None:
-                LAYERNAME = find_target_layer(model)
-    heatmap = run_gradcam(
-        model, LAYERNAME, image, classIdx)
-    
-    images.append(image)
-    idxs.append(classIdx)
-    confidences.append(preds[0][classIdx])
-    hmaps.append(heatmap)
+        # Run Grad-CAM
+        if LAYERNAME is None:
+                    LAYERNAME = find_target_layer(model)
+        heatmap = run_gradcam(
+            model, LAYERNAME, image, classIdx)
+        
+        images.append(image)
+        idxs.append(classIdx)
+        confidences.append(preds[0][classIdx])
+        hmaps.append(heatmap)
 
-    # Show image
-    fig = plt.plot(figsize=(10, 5))
-    plt.subplots_adjust(hspace=0.01)
-    plt.imshow(image[0])
-    plt.imshow(heatmap, cmap='jet', alpha=0.4)
-    plt.savefig(f"heatmap/{CLASSE}/{image_file}")
+        # Show image
+        fig = plt.plot(figsize=(10, 5))
+        plt.subplots_adjust(hspace=0.01)
+        plt.imshow(image[0])
+        plt.imshow(heatmap, cmap='jet', alpha=0.4)
+        plt.savefig(f"heatmap/{image_file}")
+    except:
+        continue
 print('**DISCLAIMER**')
 print('Do not use this prediction for self-diagnosis. '
     'You should check with your local authorities for '
