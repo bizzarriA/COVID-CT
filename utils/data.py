@@ -11,7 +11,8 @@ import tensorflow as tf
 from tqdm import tqdm
 
 
-def read_csv(base_path):
+def read_csv(image_path):
+    base_path = 'dataset/'
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
@@ -24,9 +25,8 @@ def read_csv(base_path):
     test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
     
-    image_path = base_path + '2A_images/'  # directory path
     train_df['filename'] = image_path + train_df['filename']
-    val_df['filename'] = image_path + val_df['filename']
+    val_df['filename'] = 'dataset/2A_images/' + val_df['filename']
     test_df['filename'] = image_path + test_df['filename']
     print(test_df)
     # ## read unife and append
