@@ -101,7 +101,7 @@ if __name__=="__main__":
     csv = np.array(csv[csv["source"]=="iCTCF"]["patient id"])
     csv = [name.replace("HUST-", "") for name in csv]
     print(csv)
-    for i in range(1522):
+    for i in range(1132, 1522):
         name = f"Patient%20{i}.zip"
         print(name)
         if f"Patient{i}" in csv:

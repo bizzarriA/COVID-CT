@@ -18,7 +18,7 @@ if __name__=="__main__":
     base_path="dataset/"
     train_df, test_df, val_df = read_csv(base_path)
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
-    # n_train, n_val, n_test = 100, 13, 10
+    n_train, n_val, n_test = 10000, 10000, 100
     print("read train images")
     x_train = []
     y_train = []
@@ -34,7 +34,8 @@ if __name__=="__main__":
                     x_train.append(img)
                     y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
-                print("ERRORE ", name)
+                continue
+                #print("ERRORE ", name)
         else:
             break
     x_train = np.array(x_train)
@@ -55,7 +56,8 @@ if __name__=="__main__":
                     x_val.append(img)
                     y_val.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
-                print("ERRORE ", name)
+                continue
+                #print("ERRORE ", name)
         else:
             break
     x_val = np.array(x_val)

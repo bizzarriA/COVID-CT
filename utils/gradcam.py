@@ -14,7 +14,7 @@ def load_and_preprocess(image_files, width=256, height=256):
         # Load and crop image
         image = cv2.imread(image_file, cv2.IMREAD_GRAYSCALE)
         image, validate = auto_body_crop(image)
-        if not validate:
+        if validate:
             image = cv2.resize(image, (width, height), cv2.INTER_CUBIC)
 
             # Convert to float in range [0, 1] and stack to 3-channel
@@ -110,11 +110,11 @@ CLASS_NAMES = ('0_normal', '1_common', '2_covid')
 CLASSE = CLASS_NAMES[2]
 
 # Load Model
-model = tf.keras.models.load_model('model/model_3class_ft_20220311-173216')
+model = tf.keras.models.load_model('model/model_3class_ft_20220315-195003')
 model.summary()
 # Select image file
 
-base_path = f'dataset/2A_images/'
+base_path = 'dataset/test/Patient 23/CT/' #dataset/2A_images/'
 # image_files = os.listdir(base_path)
 # image_files = ['LIDC-IDRI-0273-1.3.6.1.4.1.14519.5.2.1.6279.6001.268992195564407418480563388746-0093.png',
 #               'CP_5_3509_0130.png',
@@ -127,7 +127,8 @@ idxs = []
 confidences = []
 csv = csv.sample(n=100)
 image_files = np.array(csv['filename'])
-for image_file in image_files:
+image_files = os.listdir(base_path)
+for image_file in image_files[:100]:
     # Prepare imags
     try:
         image = load_and_preprocess([base_path + image_file])
@@ -150,7 +151,7 @@ for image_file in image_files:
         plt.subplots_adjust(hspace=0.01)
         plt.imshow(image[0])
         plt.imshow(heatmap, cmap='jet', alpha=0.4)
-        plt.savefig(f"heatmap/{image_file}")
+        plt.savefig(f"heatmap/{classIdx}_{image_file}")
     except:
         continue
 print('**DISCLAIMER**')
