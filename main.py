@@ -9,18 +9,27 @@ from utils.model import get_model
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    ISIZE = 256
     base_path = 'dataset/'
     print("[INFO] Read Train - Val - Test:")
     train_df, test_df, val_df = read_csv(base_path)
     x_train = []
     y_train = []
     for row in tqdm(train_df):
-        x_train.append(load_and_process(row))
+        name = row[0]
+        img = cv2.imread(name, 0)
+        img = cv2.resize(img, (ISIZE, ISIZE))
+        img = np.expand_dims(img, axis=-1)
+        x_train.append(img)
         y_train.append(tf.keras.utils.to_categorical(row[1], 3))
     x_val = []
     y_val = []
     for row in tqdm(val_df):
-        x_val.append(load_and_process(row))
+        name = row[0]
+        img = cv2.imread(name, 0)
+        img = cv2.resize(img, (ISIZE, ISIZE))
+        img = np.expand_dims(img, axis=-1)
+        x_val.append(img)
         y_val.append(tf.keras.utils.to_categorical(row[1], 3))
     x_train = np.array(x_train)
     y_train = np.array(y_train)
