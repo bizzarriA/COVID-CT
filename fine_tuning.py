@@ -24,7 +24,7 @@ if __name__=="__main__":
         base_path="dataset/2A_images/"
     train_df, test_df, val_df = read_csv(base_path)
     n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
-    n_train, n_val, n_test = 10000, 10000, 100
+    #n_train, n_val, n_test = 10000, 10000, 100
     print("read train images")
     x_train = []
     y_train = []
@@ -106,7 +106,7 @@ if __name__=="__main__":
                                                          restore_best_weights=True)
     log_dir = "log/model_3_class_tf_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-    callbacks = [#tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
+    callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
                  #checkpoint_cb,
                  early_stopping_cb
@@ -123,7 +123,7 @@ if __name__=="__main__":
     model.fit(
         x_train, y_train,
         validation_data=(x_val, y_val),
-        epochs=10,
+        epochs=100,
         callbacks=callbacks,
         # steps_per_epoch = 100,
         batch_size=global_batch_size,

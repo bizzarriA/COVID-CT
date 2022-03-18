@@ -10,7 +10,7 @@ from utils.preprocessing import auto_body_crop
 
 ISIZE = 256
 if __name__=='__main__':
-    crop = False
+    crop = True
     base_path = 'dataset/'
     _, test_df, _ = read_csv(base_path)
     x_test = []
