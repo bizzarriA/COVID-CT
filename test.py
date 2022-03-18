@@ -46,7 +46,7 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     #for model_name in model_names:
-    model_name = 'prova'
+    model_name = "model_3class_Adam_20220317-185431"
     #try: 
     print("[INFO] MODEL NAME: ", model_name)
     model = tf.keras.models.load_model('model/'+model_name)

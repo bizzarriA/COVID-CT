@@ -27,7 +27,7 @@ def read_csv(image_path):
     
     train_df['filename'] = image_path + train_df['filename']
     val_df['filename'] = 'dataset/2A_images/' + val_df['filename']
-    test_df['filename'] = image_path + test_df['filename']
+    test_df['filename'] = 'dataset/2A_images/' + test_df['filename']
     print(test_df)
     # ## read unife and append
     # unife_df = pd.read_csv(base_path+'unife.csv')
