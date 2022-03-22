@@ -11,7 +11,7 @@ import tensorflow as tf
 from tqdm import tqdm
 
 
-def read_csv(image_path):
+def read_csv():
     base_path = 'dataset/'
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
@@ -25,7 +25,7 @@ def read_csv(image_path):
     test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     # test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
     
-    train_df['filename'] = image_path + train_df['filename']
+    train_df['filename'] = 'dataset/2A_images/'+ train_df['filename']
     val_df['filename'] = 'dataset/2A_images/' + val_df['filename']
     test_df['filename'] = 'dataset/2A_images/' + test_df['filename']
     print(test_df)
@@ -136,18 +136,53 @@ def load_and_process(row=None, path=None):
 
 
 if __name__=="__main__":
-    from tensorflow.keras.preprocessing.image import img_to_array
-    from tensorflow.keras.preprocessing.image import load_img
-    from tensorflow.keras.applications import imagenet_utils
     import numpy as np
-    import argparse
-    import imutils
+    import pandas as pd
+    import os
     import cv2
+    from random import sample
 
-    base_path = 'dataset/2A_images/'
-    elenco = os.listdir(base_path)
-    for path in elenco:
-        cv2.imread(base_path+path)
+    csv = pd.read_csv('dati_clinici_superfinal.csv')
+    id = []
+    labels = []
+    IDX_COVID = 7
+    IDX_CT = 8
+    
+    #test = os.listdir('test/')
+    base_path = 'test/'
+    train = os.listdir(base_path)
+    
+    # test = sample(validi, 250)
+    
+    # for paziente in test:
+    #     os.system(f"mv \"dataset/train/{paziente}\" dataset/test/")
+    for img in train:
+        try: 
+            name = base_path+img
+            # print(name)
+            row = np.array(csv[csv['id'].str.contains(img.split('_')[0])])[0]
+            #print(row)
+            if row[IDX_CT] == 'Negative':
+                    y = 0
+            elif row[IDX_COVID] == 'Negative':
+                y = 1
+            elif 'Positive' in row[IDX_COVID]:
+                y = 2
+            else:
+                print("[Error] paziente: ", name)
+                continue
+            labels.append(y)
+            id.append(name)
+        except:
+            print("ERRORE file: ", name)
+            continue
+    id = np.array(id).flatten()
+    labels = np.array(labels).flatten()
+    print(np.shape(id), np.shape(labels))
+    pd.DataFrame({'filename': id, 'label': labels}).to_csv('test_data.csv')
+    
+    print(id[:10])
+    
     
     
 

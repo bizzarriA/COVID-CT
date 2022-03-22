@@ -76,10 +76,20 @@ def auto_body_crop(image, scale=1.0):
         ymin = int(center[1] - height/2)
         ymax = int(center[1] + height/2)
     
+    minimo = int(np.shape(image)[1]*0.10)
     nx = int(np.shape(image)[0]*0.30)  
     ny = int(np.shape(image)[1]*0.30)        
     #draw it
-    if xmax-xmin>nx and ymax-ymin>ny:
+    # controllo bordi
+    top = xmin
+    buttom = np.shape(image)[0]-xmax
+    left = ymin
+    right = np.shape(image)[1]-ymax
+    if  top > minimo and buttom > minimo and left > minimo and right > minimo:
+        border = True
+    else:
+        border = False
+    if xmax-xmin>nx and ymax-ymin>ny and border:
         validate = True
     else:
         validate = False
