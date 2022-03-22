@@ -15,20 +15,24 @@ def read_csv(image_path):
     base_path = 'dataset/'
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
     
     val_df = pd.read_csv(base_path + 'val_COVIDx_CT-2A.txt', sep=" ", header=None)
     val_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
 
     test_df = pd.read_csv(base_path + 'test_COVIDx_CT-2A.txt', sep=" ", header=None)
     test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-    
+    test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+
+    new_train = pd.read_csv('train_data.csv')
+    new_train = new_train.iloc[:,1:]
+    #new_train.columns = ['filename', 'label']
+    #new_train = new_train[new_train['filename'].str.contains('test') == False]
     train_df['filename'] = image_path + train_df['filename']
     val_df['filename'] = 'dataset/2A_images/' + val_df['filename']
     test_df['filename'] = 'dataset/2A_images/' + test_df['filename']
-    print(test_df)
+    # print(test_df)
     # ## read unife and append
     # unife_df = pd.read_csv(base_path+'unife.csv')
     # unife_df = unife_df[unife_df['label']!=0]
@@ -38,7 +42,7 @@ def read_csv(image_path):
     
     
     print("train: ",len(train_df),"val: ", len(val_df),"test: ", len(test_df))
-    return train_df, test_df, val_df
+    return train_df, test_df, val_df, new_train
 
 
 def plot_img(data):
