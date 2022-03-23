@@ -10,7 +10,7 @@ from utils.preprocessing import auto_body_crop
 
 ISIZE = 256
 if __name__=='__main__':
-    crop = True
+    crop = False
     base_path = 'dataset/'
     _, _, _, test_df = read_csv()
     # test_df = pd.read_csv('test_data.csv')
@@ -29,18 +29,11 @@ if __name__=='__main__':
         try:
             # print("[INFO] immagine utilizzabile: ", name)
             img = cv2.imread(name, 0) 
-            if crop:
-                img, validate = auto_body_crop(img)
-                if validate:
-                    img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    x_test.append(img / 255.)
-                    y_test.append(row[1])
-            else:
-                img = cv2.resize(img, (ISIZE, ISIZE))
-                img = np.expand_dims(img, axis=-1)
-                x_test.append(img / 255.)
-                y_test.append(row[1])
+            img = cv2.resize(img, (ISIZE, ISIZE))
+            img = np.expand_dims(img, axis=-1)
+            x_test.append(img)
+            y_test.append(row[1])
+            filename.append(name)
         except:
             continue
     x_test = np.array(x_test)
@@ -48,7 +41,7 @@ if __name__=='__main__':
     print(np.shape(x_test))
     print("lettura DS finita")
     #for model_name in model_names:
-    model_name = "model/model_3class_Adam_20220322-105724"
+    model_name = "model/model_3class_Adam_20220322-172329"
     #try: 
     print("[INFO] MODEL NAME: ", model_name)
     model = tf.keras.models.load_model(model_name)
@@ -69,7 +62,7 @@ if __name__=='__main__':
     print(test_acc)
     confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
     print("Confusion matrix:\n",confusion_mtx)
-    # result = pd.DataFrame({'id': filename, 'y_pred':y_pred, 'y_true':y_true})
-    # result.to_csv('result_3_class.csv')
+    result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
+    result.to_csv('result_3_class.csv')
     # except:
     #         print("[ERRORE] modello: ", model_name)

@@ -5,7 +5,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from preprocessing import auto_body_crop
+from utils.preprocessing import auto_body_crop
 
 def load_and_preprocess(image_files, width=256, height=256):
     """Loads and preprocesses images for inference"""
@@ -101,60 +101,66 @@ def stacked_bar(ax, probs):
     ax.set_title('Class Confidences by Slice')
     ax.legend(CLASS_NAMES, loc='upper right')
     
+
 # Model directory, metagraph file name, and checkpoint name
-MODEL_DIR = 'models/prova'
-LAYERNAME = 'batch_normalization_3'
 
-# Class names, in order of index
-CLASS_NAMES = ('0_normal', '1_common', '2_covid')
-CLASSE = CLASS_NAMES[2]
 
-# Load Model
-model = tf.keras.models.load_model("model/model_jpeg_18_03_all_image") #'model/model_18_03_crop_img')
-model.summary()
-# Select image file
+def gradcam_main(model, image, name, real):
+    # MODEL_DIR = 'models/prova'
+    LAYERNAME = 'batch_normalization_3'
 
-base_path = 'nuovi/test/Patient 23/CT/' #dataset/2A_images/'
-# image_files = os.listdir(base_path)
-# image_files = ['LIDC-IDRI-0273-1.3.6.1.4.1.14519.5.2.1.6279.6001.268992195564407418480563388746-0093.png',
-#               'CP_5_3509_0130.png',
-#               'HUST-Patient1314-0348.png']
-csv = pd.read_csv('dataset/test_COVIDx_CT-2A.txt', sep=' ', header=None)
-csv.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-images = []
-hmaps = []
-idxs = []
-confidences = []
-csv = csv.sample(n=100)
-image_files = np.array(csv['filename'])
-image_files = os.listdir(base_path)
-for image_file in image_files:
-    # Prepare imags
-    try:
-        image = load_and_preprocess([base_path + image_file])
-        preds = model.predict(image, batch_size=1)
-        classIdx = np.argmax(preds)
+    # Class names, in order of index
+    # CLASS_NAMES = ('0_normal', '1_common', '2_covid')
+    # CLASSE = CLASS_NAMES[2]
+
+    # Load Model
+    # model = tf.keras.models.load_model("model/model_jpeg_18_03_all_image") #'model/model_18_03_crop_img')
+    # model.summary()
+    # Select image file
+
+    # base_path = 'nuovi/test/Patient 23/CT/' #dataset/2A_images/'
+    # image_files = os.listdir(base_path)
+    # image_files = ['LIDC-IDRI-0273-1.3.6.1.4.1.14519.5.2.1.6279.6001.268992195564407418480563388746-0093.png',
+    #               'CP_5_3509_0130.png',
+    #               'HUST-Patient1314-0348.png']
+    # csv = pd.read_csv('dataset/test_COVIDx_CT-2A.txt', sep=' ', header=None)
+    # csv.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
+    # images = []
+    # hmaps = []
+    # idxs = []
+    # confidences = []
+    # csv = csv.sample(n=100)
+    # image_files = np.array(csv['filename'])
+    # image_files = os.listdir(base_path)
+    # for image_file in image_files:
+        # Prepare imags
+    # try:
+        # image = load_and_preprocess([base_path + image_file])
+    image = np.expand_dims(image, axis=0)
+    preds = model.predict(image, batch_size=1)
+    classe = np.argmax(preds)
 
         # Run Grad-CAM
-        if LAYERNAME is None:
-                    LAYERNAME = find_target_layer(model)
-        heatmap = run_gradcam(
-            model, LAYERNAME, image, classIdx)
-        
-        images.append(image)
-        idxs.append(classIdx)
-        confidences.append(preds[0][classIdx])
-        hmaps.append(heatmap)
+    if LAYERNAME is None:
+                LAYERNAME = find_target_layer(model)
+    heatmap = run_gradcam(
+        model, LAYERNAME, image, classe)
+    
+    # images.append(image)
+    # idxs.append(classIdx)
+    # confidences.append(preds[0][classIdx])
+    # hmaps.append(heatmap)
 
-        # Show image
-        fig = plt.plot(figsize=(10, 5))
-        plt.subplots_adjust(hspace=0.01)
-        plt.imshow(image[0])
-        plt.imshow(heatmap, cmap='jet', alpha=0.4)
-        plt.savefig(f"heatmap/normal_{classIdx}_{image_file}")
-    except:
-        continue
-print('**DISCLAIMER**')
-print('Do not use this prediction for self-diagnosis. '
-    'You should check with your local authorities for '
-    'the latest advice on seeking medical assistance.')
+    # Show image
+    fig = plt.plot(figsize=(10, 5))
+    plt.subplots_adjust(hspace=0.01)
+    plt.imshow(image[0])
+    plt.imshow(heatmap, cmap='jet', alpha=0.4)
+    plt.savefig(f"heatmap/{real}_{classe}_{name}")
+# except:
+#     print("ERRORE GRADCAM")
+
+    # print('**DISCLAIMER**')
+    # print('Do not use this prediction for self-diagnosis. '
+    #     'You should check with your local authorities for '
+    #     'the latest advice on seeking medical assistance.')

@@ -1,4 +1,4 @@
-from colorsys import yiq_to_rgb
+
 import cv2
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -11,24 +11,29 @@ import tensorflow as tf
 from tqdm import tqdm
 
 
+
 def read_csv():
     base_path = 'dataset/'
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    train_df = train_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
     
     val_df = pd.read_csv(base_path + 'val_COVIDx_CT-2A.txt', sep=" ", header=None)
     val_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    val_df = val_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
 
     test_df = pd.read_csv(base_path + 'test_COVIDx_CT-2A.txt', sep=" ", header=None)
     test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    # test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-    
-    train_df['filename'] = 'dataset/2A_images/'+ train_df['filename']
+    test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+
+    new_train = pd.read_csv('total_test_data.csv')
+    new_train = new_train.iloc[:,1:]
+    #new_train.columns = ['filename', 'label']
+    #new_train = new_train[new_train['filename'].str.contains('test') == False]
+    train_df['filename'] = 'dataset/2A_images/' + train_df['filename']
     val_df['filename'] = 'dataset/2A_images/' + val_df['filename']
     test_df['filename'] = 'dataset/2A_images/' + test_df['filename']
-    print(test_df)
+    # print(test_df)
     # ## read unife and append
     # unife_df = pd.read_csv(base_path+'unife.csv')
     # unife_df = unife_df[unife_df['label']!=0]
@@ -38,7 +43,7 @@ def read_csv():
     
     
     print("train: ",len(train_df),"val: ", len(val_df),"test: ", len(test_df))
-    return train_df, test_df, val_df
+    return train_df, test_df, val_df, new_train
 
 
 def plot_img(data):
@@ -141,37 +146,38 @@ if __name__=="__main__":
     import os
     import cv2
     from random import sample
+    from preprocessing import auto_body_crop
 
-    csv = pd.read_csv('dati_clinici_superfinal.csv')
+
+    test_df = pd.read_csv('dataset/train_COVIDx_CT-2A.txt', sep=' ')
+    test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
+    test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
+    test_df = test_df[test_df['filename'].str.contains('HUST')]
+    test_df = test_df.sample(n=10000)
     id = []
     labels = []
-    IDX_COVID = 7
-    IDX_CT = 8
+    
+    
+
     
     #test = os.listdir('test/')
-    base_path = 'test/'
-    train = os.listdir(base_path)
-    
-    # test = sample(validi, 250)
-    
-    # for paziente in test:
-    #     os.system(f"mv \"dataset/train/{paziente}\" dataset/test/")
-    for img in train:
+    base_path = 'dataset/2A_images/'
+    dest_path = 'train/'
+
+    for i, row in test_df.iterrows():
         try: 
-            name = base_path+img
-            # print(name)
-            row = np.array(csv[csv['id'].str.contains(img.split('_')[0])])[0]
-            #print(row)
-            if row[IDX_CT] == 'Negative':
-                    y = 0
-            elif row[IDX_COVID] == 'Negative':
-                y = 1
-            elif 'Positive' in row[IDX_COVID]:
-                y = 2
-            else:
-                print("[Error] paziente: ", name)
-                continue
-            labels.append(y)
+            # HUST-Patient1-0062.png --> Patient1_0062.png
+            #name = row[0].replace("HUST-", "")
+            name_old = row[0].replace("-", "_")
+            name = name_old.replace('_', '-', 1)
+            # os.system(f"mv {name_old} {name}")
+            img = cv2.imread(base_path + row[0], 0)
+            img, validate = auto_body_crop(img)
+            if validate:
+                cv2.imwrite('new_train/' + name, img)
+            name = dest_path + name
+            print(name)
+            labels.append(row[1])
             id.append(name)
         except:
             print("ERRORE file: ", name)
@@ -179,7 +185,10 @@ if __name__=="__main__":
     id = np.array(id).flatten()
     labels = np.array(labels).flatten()
     print(np.shape(id), np.shape(labels))
-    pd.DataFrame({'filename': id, 'label': labels}).to_csv('test_data.csv')
+    new_data = pd.DataFrame({'filename': id, 'label': labels})
+    test_data = pd.read_csv('train_data.csv')
+    test_data = test_data.append(new_data, ignore_index=True)
+    test_data.to_csv('total_train_data.csv')
     
     print(id[:10])
     
