@@ -37,6 +37,7 @@ if __name__=='__main__':
         except:
             continue
     x_test = np.array(x_test)
+    x_normal = x_test / 255.
     y_true = np.array(y_test)
     print(np.shape(x_test))
     print("lettura DS finita")
@@ -58,12 +59,26 @@ if __name__=='__main__':
             y_true = np.array(y_true)
             # print(np.shape(y_pred), np.shape(y_true))
             # print(y_true[:3], y_pred[:3])
-            test_acc = sum(y_pred == y_true) / len(y_true)
-            print(test_acc)
-            confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
             print("[INFO] MODEL NAME: ", model_name)
-            print("Confusion matrix:\n",confusion_mtx)
-            result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
-            result.to_csv('result_3_class.csv')
+            test_acc = sum(y_pred == y_true) / len(y_true)
+            print("[INFO] normal accuracy: ")
+            print(test_acc)
+            y_pred = []
+            scores = []
+            predictions = model.predict(x_normal)
+            for prediction in predictions:        
+                classes = np.argmax(prediction)
+                prob = prediction[classes]
+                y_pred.append(classes)
+                scores.append(prediction)
+            y_pred = np.array(y_pred)
+            y_true = np.array(y_true)
+            test_acc = sum(y_pred == y_true) / len(y_true)
+            print("[INFO] /255. accuracy: ")
+            print(test_acc)
+            # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+            # print("Confusion matrix:\n",confusion_mtx)
+            # result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
+            # result.to_csv('result_3_class.csv')
         except:
                 print("[ERRORE] modello: ", model_name)
