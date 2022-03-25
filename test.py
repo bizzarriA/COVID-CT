@@ -41,9 +41,12 @@ if __name__=='__main__':
     print(np.shape(x_test))
     print("lettura DS finita")
     model_names = os.listdir('model/')
-    for model_name in model_names:
+    i = 0
+    for model_name in model_names[i:]:
             # model_name = "model_ft_cropped_20220325-145149"
         try: 
+            i+=1
+            print(i)
             model = tf.keras.models.load_model('model/'+ model_name)
             # model.summary()    
             y_pred = []
