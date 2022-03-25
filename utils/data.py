@@ -26,8 +26,8 @@ def read_csv():
     test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
 
-    new_train = pd.read_csv('total_test_data.csv')
-    new_train = new_train.iloc[:,1:]
+    new_train = pd.read_csv('total_train_data.csv')
+    new_train = new_train.iloc[:,2:]
     #new_train.columns = ['filename', 'label']
     #new_train = new_train[new_train['filename'].str.contains('test') == False]
     train_df['filename'] = 'dataset/2A_images/' + train_df['filename']

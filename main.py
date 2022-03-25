@@ -16,20 +16,24 @@ if __name__ == '__main__':
     base_path = 'dataset/2A_images/'
     crop = True
     print("[INFO] Read Train - Val - Test:")
-    train_df, test_df, val_df, new_df = read_csv(base_path)
+    train_df, test_df, val_df, new_df = read_csv()
     print(len(train_df))
     train_df = train_df.append(val_df, ignore_index=True)
     print(len(train_df))
     train_df = train_df.append(new_df, ignore_index=True)
     print(len(train_df))
     # train_df = train_df.sample(n=100)
-    #val_df = val_df.sample(n=100)
+    train_df = train_df.sample(frac=1)
     x_train = []
     y_train = []
     print(train_df)
     for _, row in tqdm(train_df.iterrows()):
         try:
             name = row[0]
+            if 'train/' in name:
+                crop = False
+            else:
+                crop = True
      #       print("[INFO] immagine utilizzabile: ", name)
             img = cv2.imread(name, 0)
             if crop:
@@ -48,7 +52,9 @@ if __name__ == '__main__':
             continue
     x_train = np.array(x_train)
     y_train = np.array(y_train)
-    x, y = shuffle(x_train, y_train)
+    x = x_train
+    y = y_train
+    # x, y = shuffle(x_train, y_train)
     n = int(len(y)*0.8)
     x_train = x[:n]
     y_train = y[:n]
@@ -84,7 +90,7 @@ if __name__ == '__main__':
         shuffle=True,
         verbose=1
     )
-    model.save("model/model_jpeg_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    model.save("model/model_256_total_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     
     # print("[INFO] Test Phase: ")
     # y_pred = []

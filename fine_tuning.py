@@ -18,11 +18,7 @@ ISIZE = 256
 crop = False
 
 if __name__=="__main__":
-    if crop:
-        base_path = 'dataset/2A_images/'
-    else:
-        base_path="dataset/2A_images/"
-    _, test_df, val_df, train_df = read_csv(base_path)
+    _, test_df, val_df, train_df = read_csv()
     # n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
     # n_train, n_val, n_test = 10000, 10000, 100
     print("read train images")
@@ -30,18 +26,19 @@ if __name__=="__main__":
     x_train = []
     y_train = []
     # valide = os.listdir(base_path)
-    # print(len(valide), n_train, n_val)
+    print(len(train_df))
     for i, row in tqdm(train_df.iterrows()):
         # name = row[0]
     #    if i < n_train: # and name.split('/')[-1] in valide:
             try:
                 name = row[0]
                 img = cv2.imread(name, 0)
-                img, validate = auto_body_crop(img)
+                # img, validate = auto_body_crop(img)
+                validate = True
                 if validate:
                     img = cv2.resize(img, (ISIZE, ISIZE))
                     img = np.expand_dims(img, axis=-1)
-                    x_train.append(img)
+                    x_train.append(img/255.)
                     y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
                 continue
@@ -60,6 +57,7 @@ if __name__=="__main__":
     y_train = y[:n]
     x_val = x[n:]
     y_val = y[n:]
+    print(np.shape(x_train), np.shape(y_train), np.shape(x_val), np.shape(y_val))
     ### Mirrored strategy ###
     mirrored_strategy = tf.distribute.MirroredStrategy()
     BATCH_SIZE_PER_REPLICA = 16
@@ -82,8 +80,8 @@ if __name__=="__main__":
     fine_tune_at = -7
 
     # Freeze all the layers before the `fine_tune_at` layer
-    for layer in model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # for layer in model.layers[:fine_tune_at]:
+    #     layer.trainable = False
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_3class.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
@@ -106,14 +104,14 @@ if __name__=="__main__":
     model.fit(
         x_train, y_train,
         validation_data=(x_val, y_val),
-        epochs=15,
+        epochs=100,
         callbacks=callbacks,
         # steps_per_epoch = 100,
         batch_size=global_batch_size,
         shuffle=True,
         verbose=1
     )
-    model.save("model/model_3class_Adam_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    model.save("model/model_ft_cropped_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     # x_test = []
     # y_test = []
     # filename = []
