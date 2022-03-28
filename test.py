@@ -21,8 +21,8 @@ if __name__=='__main__':
     filename = []
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
     # test_df = test_df.sample(frac=1)
-    test_df = test_df.sample(n=10000)
-    test_df = np.array(test_df)
+    # test_df = test_df.sample(n=1000)
+    test_df = np.array(test_df[:10000])
     print(np.shape(test_df))
     for row in tqdm(test_df):
         name = row[0]
@@ -49,35 +49,27 @@ if __name__=='__main__':
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model('model/'+ model_name)
     model.summary()    
-    y_pred = []
-    scores = []
-    for scan in x_test:
-        prediction = model.predict(scan, verbose=0)
-        classes = np.argmax(prediction)
-        prob = prediction[classes]
-        y_pred.append(classes)
-        scores.append(prediction)
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_true)
-    # print(np.shape(y_pred), np.shape(y_true))
-    # print(y_true[:3], y_pred[:3])
-    print("[INFO] MODEL NAME: ", model_name)
-    test_acc = sum(y_pred == y_true) / len(y_true)
-    print("[INFO] normal accuracy: ")
-    print(test_acc)
     # y_pred = []
     # scores = []
-    # predictions = model.predict(x_test)
-    # for prediction in predictions:        
+    # predictions =  model.predict(x_test, verbose=1, batch_size=1)
+    # test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+    y_test = np.array(tf.keras.utils.to_categorical(y_test, 3))
+    result = model.evaluate(x_test, y_test)
+    print(dict(zip(model.metrics_names, result)))
+    # for prediction in tqdm(predictions):
     #     classes = np.argmax(prediction)
     #     prob = prediction[classes]
     #     y_pred.append(classes)
     #     scores.append(prediction)
     # y_pred = np.array(y_pred)
     # y_true = np.array(y_true)
+    # # print(np.shape(y_pred), np.shape(y_true))
+    # # print(y_true[:3], y_pred[:3])
+    # print("[INFO] MODEL NAME: ", model_name)
     # test_acc = sum(y_pred == y_true) / len(y_true)
-    # print("[INFO] /255. accuracy: ")
+    # print("[INFO] normal accuracy: ")
     # print(test_acc)
+   
     # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
     # print("Confusion matrix:\n",confusion_mtx)
     # result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
