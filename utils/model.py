@@ -37,9 +37,9 @@ def get_model(width=512, height=512, n_class = 3):
     x = layers.MaxPool2D(pool_size=2)(x)
     x = layers.BatchNormalization()(x)
 
-    x = layers.Conv2D(filters=256, kernel_size=3, activation="relu")(x)
-    x = layers.MaxPool2D(pool_size=2)(x)
-    x = layers.BatchNormalization()(x)
+    # x = layers.Conv2D(filters=256, kernel_size=3, activation="relu")(x)
+    # x = layers.MaxPool2D(pool_size=2)(x)
+    # x = layers.BatchNormalization()(x)
 
     x = layers.GlobalAveragePooling2D()(x)
     x = layers.Dense(units=512, activation="relu")(x)
