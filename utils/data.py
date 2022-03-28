@@ -1,12 +1,10 @@
 
 import cv2
 import matplotlib.pyplot as plt
-import nibabel as nib
 import numpy as np
 import os
 import pandas as pd
 import random
-from skimage import io
 import tensorflow as tf
 from tqdm import tqdm
 

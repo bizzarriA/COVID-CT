@@ -1,12 +1,10 @@
 import cv2
 import datetime
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from sklearn.utils import shuffle
 import tensorflow as tf
 from tqdm import tqdm
-from utils.data import read_csv, load_and_process
+from utils.data import read_csv
 from utils.model import get_model
 from utils.preprocessing import auto_body_crop
 
@@ -22,7 +20,7 @@ if __name__ == '__main__':
     print(len(train_df))
     train_df = train_df.append(new_df, ignore_index=True)
     print(len(train_df))
-    # train_df = train_df.sample(n=100)
+    train_df = train_df.sample(n=1000)
     train_df = train_df.sample(frac=1)
     x_train = []
     y_train = []

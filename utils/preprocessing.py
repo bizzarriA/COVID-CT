@@ -1,9 +1,7 @@
 import cv2
-import nibabel as nib
 import numpy as np
 import os
 import pandas as pd
-from tqdm import tqdm
 
 IMG_EXTENSIONS = ('png', 'jpg', 'jpeg', 'tif', 'bmp')
 HU_WINDOW_WIDTH = 1500
