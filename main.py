@@ -1,12 +1,10 @@
 import cv2
 import datetime
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from sklearn.utils import shuffle
 import tensorflow as tf
 from tqdm import tqdm
-from utils.data import read_csv, load_and_process
+from utils.data import read_csv
 from utils.model import get_model
 from utils.preprocessing import auto_body_crop
 

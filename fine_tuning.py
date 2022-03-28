@@ -1,15 +1,12 @@
 import cv2
 import datetime
 import numpy as np
-import os
 import pandas as pd
-import random
 from sklearn.utils import shuffle
 import tensorflow as tf
 from tqdm import tqdm
 
 from utils.data import read_csv
-from utils.model import get_model
 from utils.preprocessing import auto_body_crop
 
 N_CLASSI = 3
