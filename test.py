@@ -21,7 +21,7 @@ if __name__=='__main__':
     filename = []
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
     # test_df = test_df.sample(frac=1)
-    # test_df = test_df.sample(n=10000)
+    test_df = test_df.sample(n=10000)
     test_df = np.array(test_df)
     print(np.shape(test_df))
     for row in tqdm(test_df):
@@ -44,7 +44,7 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model_ft_cropped_20220325-145149"
+    model_name = "model_ft_cropped_20220329-122916"
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model('model/'+ model_name)
