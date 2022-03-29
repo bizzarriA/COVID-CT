@@ -31,13 +31,10 @@ if __name__=="__main__":
             try:
                 name = row[0]
                 img = cv2.imread(name, 0)
-                # img, validate = auto_body_crop(img)
-                validate = True
-                if validate:
-                    img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    x_train.append(img/255.)
-                    y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
+                img = cv2.resize(img, (ISIZE, ISIZE))
+                img = np.expand_dims(img, axis=-1)
+                x_train.append(img/255.)
+                y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
                 continue
                 #print("ERRORE ", name)
