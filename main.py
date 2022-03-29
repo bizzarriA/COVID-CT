@@ -64,7 +64,6 @@ if __name__ == '__main__':
         metrics=['acc'],
     )
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
-    print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
         x_train, y_train,
         validation_split=0.2,
