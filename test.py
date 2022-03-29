@@ -12,16 +12,16 @@ ISIZE = 256
 if __name__=='__main__':
     crop = False
     base_path = 'dataset/'
-    _, _, _, test_df = read_csv()
-    # test_df = pd.read_csv('test_data.csv')
-    # test_df = test_df.iloc[:, 1:]
-    # print(test_df)
+    # _, _, _, test_df = read_csv()
+    test_df = pd.read_csv('total_train_data.csv')
+    test_df = test_df.iloc[:, 2:]
+    print(test_df)
     x_test = []
     y_test = []
     filename = []
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
     # test_df = test_df.sample(frac=1)
-    test_df = test_df.sample(n=10000)
+    test_df = test_df.sample(n=1000)
     test_df = np.array(test_df)
     print(np.shape(test_df))
     for row in tqdm(test_df):

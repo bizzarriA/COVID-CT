@@ -14,51 +14,37 @@ if __name__ == '__main__':
     base_path = 'dataset/2A_images/'
     crop = True
     print("[INFO] Read Train - Val - Test:")
-    train_df, test_df, val_df, new_df = read_csv()
+    train_df, test_df, val_df, new_df = read_csv(img_path='train/')
     print(len(train_df))
-    train_df = train_df.append(val_df, ignore_index=True)
-    print(len(train_df))
+    train_df = train_df.sample(n=60000)
+    # new_df = new_df.sample(n=300)
     train_df = train_df.append(new_df, ignore_index=True)
     print(len(train_df))
-    train_df = train_df.sample(n=100000)
-    # train_df = train_df.sample(frac=1)
+    train_df = train_df.sample(frac=1)
+    train_df.to_csv('use_for_training.csv')
     x_train = []
     y_train = []
     print(train_df)
     for _, row in tqdm(train_df.iterrows()):
         try:
-            name = row[0]
-            if 'train/' in name:
-                crop = False
-            else:
-                crop = True
-     #       print("[INFO] immagine utilizzabile: ", name)
-            img = cv2.imread(name, 0)
-            if crop:
-                img, validate = auto_body_crop(img)
-                if validate:
-                    img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    x_train.append(img / 255.)
-                    y_train.append(tf.keras.utils.to_categorical(row[1], 3))
-            else:
+                name = row[0]
+                img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
-                y_train.append(tf.keras.utils.to_categorical(row[1], 3))
+                y_train.append(row[1])
         except:
             continue
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-    x = x_train
-    y = y_train
-    # x, y = shuffle(x_train, y_train)
-    n = int(len(y)*0.8)
-    x_train = x[:n]
-    y_train = y[:n]
-    x_val = x[n:]
-    y_val = y[n:]
-    model = get_model(width=256, height=256)
+    print(np.bincount(y_train))
+    y_train = tf.keras.utils.to_categorical(y_train, 3)
+    mirrored_strategy = tf.distribute.MirroredStrategy()
+    BATCH_SIZE_PER_REPLICA = 16
+    global_batch_size = (BATCH_SIZE_PER_REPLICA *
+                         mirrored_strategy.num_replicas_in_sync)
+
+    print(mirrored_strategy.num_replicas_in_sync)
+    with mirrored_strategy.scope():
+        model = get_model(width=256, height=256)
     # checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
@@ -66,11 +52,11 @@ if __name__ == '__main__':
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
-                #  checkpoint_cb,
+                 # checkpoint_cb,
                  early_stopping_cb
                  ]
 
-    optimizer = tf.keras.optimizers.Adam(0.001)  # * hvd.size())
+    optimizer = tf.keras.optimizers.Adamax(0.001)  # * hvd.size())
     print("[INFO] Model compile")
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(),
@@ -78,10 +64,9 @@ if __name__ == '__main__':
         metrics=['acc'],
     )
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
-    print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
         x_train, y_train,
-        validation_data=(x_val, y_val),
+        validation_split=0.2,
         epochs=100,
         callbacks=callbacks,
         batch_size=32,

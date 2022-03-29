@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import pandas as pd
+from tqdm import tqdm
 
 IMG_EXTENSIONS = ('png', 'jpg', 'jpeg', 'tif', 'bmp')
 HU_WINDOW_WIDTH = 1500
@@ -97,10 +98,18 @@ def auto_body_crop(image, scale=1.0):
 if __name__=="__main__":
     # base_path = "../ictcf.biocuckoo.cn/patient/"
     base_path = "dataset/"
-    csv = pd.read_csv("dataset/train_COVIDx_CT-2A.txt")
-    for _, row in csv.iterrows():
-        img = cv2.imread(row[0], 0)
-        img, validate = auto_body_crop(img)
-        if validate:
-            cv2.imwrite(f'train/{row[0]}', img)
-        
+    csv = pd.read_csv("dataset/train_COVIDx_CT-2A.txt", sep=' ')
+    csv = np.array(csv)
+    i = 21389
+    for row in tqdm(csv[21389:]):
+        i+=1
+        print(i)
+        try:
+            name = 'dataset/2A_images/'+row[0]
+            img = cv2.imread(name, 0)
+            img, validate = auto_body_crop(img)
+            if validate:
+                cv2.imwrite(f"train/{row[0]}", img)
+        except:
+            print("ERRORE :", name)
+            continue
