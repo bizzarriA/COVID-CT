@@ -18,10 +18,12 @@ if __name__ == '__main__':
     print(len(train_df))
     train_df = train_df.append(val_df, ignore_index=True)
     print(len(train_df))
+    train_df = train_df.sample(n=60000)
+    # new_df = new_df.sample(n=300)
     train_df = train_df.append(new_df, ignore_index=True)
     print(len(train_df))
-    train_df = train_df.sample(n=1000)
     train_df = train_df.sample(frac=1)
+    train_df.to_csv('use_for_training.csv')
     x_train = []
     y_train = []
     print(train_df)
@@ -40,14 +42,16 @@ if __name__ == '__main__':
                     img = cv2.resize(img, (ISIZE, ISIZE))
                     img = np.expand_dims(img, axis=-1)
                     x_train.append(img / 255.)
-                    y_train.append(tf.keras.utils.to_categorical(row[1], 3))
+                    y_train.append(row[1])
             else:
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
-                y_train.append(tf.keras.utils.to_categorical(row[1], 3))
+                y_train.append(row[1])
         except:
             continue
+    print(np.bincount(y_train))
+    y_train = tf.keras.utils.to_categorical(y_train, 3)
     x_train = np.array(x_train)
     y_train = np.array(y_train)
     x = x_train
@@ -59,18 +63,18 @@ if __name__ == '__main__':
     x_val = x[n:]
     y_val = y[n:]
     model = get_model(width=256, height=256)
-    checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
+    # checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
     log_dir = "log/model_original_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
-                 checkpoint_cb,
+                 # checkpoint_cb,
                  early_stopping_cb
                  ]
 
-    optimizer = tf.keras.optimizers.Adam(0.001)  # * hvd.size())
+    optimizer = tf.keras.optimizers.Adamax(0.001)  # * hvd.size())
     print("[INFO] Model compile")
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(),
