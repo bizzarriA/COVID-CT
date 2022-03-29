@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 
 
-def read_csv():
+def read_csv(img_path='dataset/2A_images'):
     base_path = 'dataset/'
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
@@ -25,12 +25,12 @@ def read_csv():
     test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
 
     new_train = pd.read_csv('total_train_data.csv')
-    new_train = new_train.iloc[:,1:]
+    new_train = new_train.iloc[:,2:]
     #new_train.columns = ['filename', 'label']
     #new_train = new_train[new_train['filename'].str.contains('test') == False]
-    train_df['filename'] = 'dataset/2A_images/' + train_df['filename']
-    val_df['filename'] = 'dataset/2A_images/' + val_df['filename']
-    test_df['filename'] = 'dataset/2A_images/' + test_df['filename']
+    train_df['filename'] = img_path + train_df['filename']
+    val_df['filename'] = img_path + val_df['filename']
+    test_df['filename'] = img_path + test_df['filename']
     # print(test_df)
     # ## read unife and append
     # unife_df = pd.read_csv(base_path+'unife.csv')

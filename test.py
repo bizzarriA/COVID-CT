@@ -12,10 +12,10 @@ ISIZE = 256
 if __name__=='__main__':
     crop = False
     base_path = 'dataset/'
-    _, _, _, test_df = read_csv()
-    # test_df = pd.read_csv('test_data.csv')
-    # test_df = test_df.iloc[:, 1:]
-    # print(test_df)
+    # _, _, _, test_df = read_csv()
+    test_df = pd.read_csv('total_test_data.csv')
+    test_df = test_df.iloc[:, 1:]
+    print(test_df)
     x_test = []
     y_test = []
     filename = []
@@ -44,7 +44,7 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model_ft_cropped_20220325-145149"
+    model_name = "model_ft_cropped_20220329-122916" 
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model('model/'+ model_name)

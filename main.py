@@ -14,9 +14,7 @@ if __name__ == '__main__':
     base_path = 'dataset/2A_images/'
     crop = True
     print("[INFO] Read Train - Val - Test:")
-    train_df, test_df, val_df, new_df = read_csv()
-    print(len(train_df))
-    train_df = train_df.append(val_df, ignore_index=True)
+    train_df, test_df, val_df, new_df = read_csv(img_path='train/')
     print(len(train_df))
     train_df = train_df.sample(n=60000)
     # new_df = new_df.sample(n=300)
@@ -29,21 +27,8 @@ if __name__ == '__main__':
     print(train_df)
     for _, row in tqdm(train_df.iterrows()):
         try:
-            name = row[0]
-            if 'train/' in name:
-                crop = False
-            else:
-                crop = True
-     #       print("[INFO] immagine utilizzabile: ", name)
-            img = cv2.imread(name, 0)
-            if crop:
-                img, validate = auto_body_crop(img)
-                if validate:
-                    img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    x_train.append(img / 255.)
-                    y_train.append(row[1])
-            else:
+                name = row[0]
+                img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
@@ -52,17 +37,14 @@ if __name__ == '__main__':
             continue
     print(np.bincount(y_train))
     y_train = tf.keras.utils.to_categorical(y_train, 3)
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-    x = x_train
-    y = y_train
-    # x, y = shuffle(x_train, y_train)
-    n = int(len(y)*0.8)
-    x_train = x[:n]
-    y_train = y[:n]
-    x_val = x[n:]
-    y_val = y[n:]
-    model = get_model(width=256, height=256)
+    mirrored_strategy = tf.distribute.MirroredStrategy()
+    BATCH_SIZE_PER_REPLICA = 16
+    global_batch_size = (BATCH_SIZE_PER_REPLICA *
+                         mirrored_strategy.num_replicas_in_sync)
+
+    print(mirrored_strategy.num_replicas_in_sync)
+    with mirrored_strategy.scope():
+        model = get_model(width=256, height=256)
     # checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
@@ -85,7 +67,7 @@ if __name__ == '__main__':
     print("Shape x and y val ",np.shape(x_val), np.shape(y_val))
     model.fit(
         x_train, y_train,
-        validation_data=(x_val, y_val),
+        validation_split=0.2,
         epochs=100,
         callbacks=callbacks,
         batch_size=32,

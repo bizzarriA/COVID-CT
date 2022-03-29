@@ -24,6 +24,7 @@ if __name__=="__main__":
     y_train = []
     # valide = os.listdir(base_path)
     print(len(train_df))
+    print(train_df)
     for i, row in tqdm(train_df.iterrows()):
         # name = row[0]
     #    if i < n_train: # and name.split('/')[-1] in valide:
