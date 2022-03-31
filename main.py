@@ -16,8 +16,8 @@ if __name__ == '__main__':
     print("[INFO] Read Train - Val - Test:")
     train_df, test_df, val_df, new_df = read_csv(img_path='train/')
     print(len(train_df))
-    train_df = train_df.sample(n=60000)
-    # new_df = new_df.sample(n=300)
+    train_df = train_df.sample(n=60)
+    new_df = new_df.sample(n=3)
     train_df = train_df.append(new_df, ignore_index=True)
     print(len(train_df))
     train_df = train_df.sample(frac=1)
@@ -27,6 +27,7 @@ if __name__ == '__main__':
     print(train_df)
     for _, row in tqdm(train_df.iterrows()):
         try:
+                # print(row[0], row[1])
                 name = row[0]
                 img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
@@ -35,7 +36,9 @@ if __name__ == '__main__':
                 y_train.append(tf.keras.utils.to_categorical(row[1], 3))
         except:
             continue
-    print(np.bincount(y_train))
+    # print(np.bincount(y_train))
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
     x, y = shuffle(x_train, y_train)
     n = int(len(y)*0.8)
     x_train = x[:n]
@@ -72,7 +75,7 @@ if __name__ == '__main__':
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     model.fit(
         x_train, y_train,
-        validation_split=0.2,
+        validation_data=(x_val, y_val),
         epochs=100,
         callbacks=callbacks,
         batch_size=global_batch_size,
