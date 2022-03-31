@@ -58,7 +58,7 @@ if __name__=='__main__':
     y_test = []
     filename = []
  
-    model_name = "model/model_ft_cropped_20220325-145149"
+    model_name = "model/model_ft_cropped_20220329-122916"
     print("[INFO] MODEL NAME: ", model_name)
     model = tf.keras.models.load_model(model_name)
     # test_df = test_df[test_df['filename'].str.contains('HUST')]

@@ -38,7 +38,7 @@ if __name__ == '__main__':
     print(np.bincount(y_train))
     y_train = tf.keras.utils.to_categorical(y_train, 3)
     mirrored_strategy = tf.distribute.MirroredStrategy()
-    BATCH_SIZE_PER_REPLICA = 16
+    BATCH_SIZE_PER_REPLICA = 8
     global_batch_size = (BATCH_SIZE_PER_REPLICA *
                          mirrored_strategy.num_replicas_in_sync)
 
