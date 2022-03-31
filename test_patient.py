@@ -63,7 +63,7 @@ if __name__=='__main__':
     model = tf.keras.models.load_model(model_name)
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
     # test_df = test_df.sample(frac=1)
-    # test_df = test_df.sample(n=1000)
+    # test_df = test_df.sample(n=100)
     test_df = np.array(test_df)
     print(np.shape(test_df))
     scans = []
@@ -96,9 +96,8 @@ if __name__=='__main__':
                     y_pred = []
                     scans = np.array(scans)
                     # print(np.shape(scans))
-                    for scan in scans:
-                        scan = np.expand_dims(scan, axis=0)
-                        prediction = model.predict(scan, verbose=0)
+                    predictions =  model.predict(scans, verbose=1, batch_size=1)
+                    for prediction in tqdm(predictions):
                         classes = np.argmax(prediction)
                         prob = prediction[classes]
                         y_pred.append(classes)
