@@ -96,8 +96,8 @@ if __name__=='__main__':
                     y_pred = []
                     scans = np.array(scans)
                     # print(np.shape(scans))
-                    predictions =  model.predict(scans, verbose=1, batch_size=1)
-                    for prediction in tqdm(predictions):
+                    predictions =  model.predict(scans, verbose=0, batch_size=1)
+                    for prediction in predictions:
                         classes = np.argmax(prediction)
                         prob = prediction[classes]
                         y_pred.append(classes)
