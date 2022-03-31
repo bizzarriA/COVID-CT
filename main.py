@@ -38,7 +38,7 @@ if __name__ == '__main__':
     print(np.bincount(y_train))
     y_train = tf.keras.utils.to_categorical(y_train, 3)
     mirrored_strategy = tf.distribute.MirroredStrategy()
-    BATCH_SIZE_PER_REPLICA = 8
+    BATCH_SIZE_PER_REPLICA = 16
     global_batch_size = (BATCH_SIZE_PER_REPLICA *
                          mirrored_strategy.num_replicas_in_sync)
 
@@ -52,11 +52,11 @@ if __name__ == '__main__':
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
-                 # checkpoint_cb,
+                #  checkpoint_cb,
                  early_stopping_cb
                  ]
 
-    optimizer = tf.keras.optimizers.Adamax(0.001)  # * hvd.size())
+    optimizer = tf.keras.optimizers.Adam(0.001)  # * hvd.size())
     print("[INFO] Model compile")
     model.compile(
         loss=tf.keras.losses.CategoricalCrossentropy(),
@@ -69,7 +69,7 @@ if __name__ == '__main__':
         validation_split=0.2,
         epochs=100,
         callbacks=callbacks,
-        batch_size=32,
+        batch_size=global_batch_size,
         shuffle=True,
         verbose=1
     )
