@@ -32,11 +32,17 @@ if __name__ == '__main__':
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
-                y_train.append(row[1])
+                y_train.append(tf.keras.utils.to_categorical(row[1], 3))
         except:
             continue
     print(np.bincount(y_train))
-    y_train = tf.keras.utils.to_categorical(y_train, 3)
+    x, y = shuffle(x_train, y_train)
+    n = int(len(y)*0.8)
+    x_train = x[:n]
+    y_train = y[:n]
+    x_val = x[n:]
+    y_val = y[n:]
+    # y_train = tf.keras.utils.to_categorical(y_train, 3)
     mirrored_strategy = tf.distribute.MirroredStrategy()
     BATCH_SIZE_PER_REPLICA = 16
     global_batch_size = (BATCH_SIZE_PER_REPLICA *
