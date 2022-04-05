@@ -1,12 +1,27 @@
 import cv2
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import numpy.random as ran
 from tqdm import tqdm
 
 IMG_EXTENSIONS = ('png', 'jpg', 'jpeg', 'tif', 'bmp')
 HU_WINDOW_WIDTH = 1500
 HU_WINDOW_CENTER = -600
+
+def moment( n, bins, pdf ):
+        if ( n < 2 ):
+            print( "Errore! il primo parametro DEVE essere maggiore o uguale a 2!" )
+            return None
+        else:
+            nextr = len(bins)
+            x = 0.5 * ( bins[0:nextr-1] + bins[1:nextr] )
+            dx = x[1] - x[0]
+            f_ave = x * pdf
+            xm = dx * f_ave.sum()
+            f_ave = ( ( x - xm )**n ) * pdf
+            return dx * f_ave.sum()
 
 def hu_to_uint8(hu_images, window_width, window_center):
     """Converts HU images to uint8 images"""
@@ -96,20 +111,80 @@ def auto_body_crop(image, scale=1.0):
     return image[ymin:ymax, xmin:xmax], validate
 
 if __name__=="__main__":
+    ## LEGGO IMMAGINE TEST E IMMAGINE TRAINING RANDOM:
+    test_df = pd.read_csv('total_test_data.csv')
+    test_df = test_df['filename']
+    train_df = pd.read_csv('total_train_data.csv')
+    train_df = train_df['filename']
+    test_name = np.array(test_df.sample(n=100))
+    train_name = np.array(train_df.sample(n=100))
+    test_img = []
+    train_img = []
+    for name in test_name:
+        # print(name)
+        if os.path.exists(name):
+            test_img.append(cv2.imread(name) / 255.)
+    for name in train_name:
+        if os.path.exists(name):
+            train_img.append(cv2.imread(name) / 255.)
+    # print(train_name, '\n', test_name)
+    Nc = 100
+    pdf_tr = []
+    bins_tr = []
+    for img in train_img:
+        pdf, bins = np.histogram(img, Nc, density = True )
+        nextr = len( bins )
+        pdf_tr.append(pdf)
+        bins_tr.append(bins)
+        
+    pdf_ts = []
+    bins_ts = []
+    for img in test_img:
+        pdf, bins = np.histogram(img, Nc, density = True )
+        nextr = len( bins )
+        pdf_ts.append(pdf)
+        bins_ts.append(bins)
+
+    # fig, axs = plt.subplots(2)
+    # axs[0].bar( bins_tr[:nextr_tr-1], pdf_tr, dx_tr, color = "g" )
+    # axs[0].set_title('train')
+    # axs[1].bar( bins[:nextr-1], pdf, dx, color = "g" )
+    # axs[1].set_title('test')
+    
+    plt.show()
+
+    
+    moment2_tr = np.mean([moment(2, bins, pdf) for bins, pdf in zip(bins_tr, pdf_tr)])
+    moment2_ts = np.mean([moment(2, bins, pdf) for bins, pdf in zip(bins_ts, pdf_ts)])
+    moment3_tr = np.mean([moment(3, bins, pdf) for bins, pdf in zip(bins_tr, pdf_tr)])
+    moment3_ts = np.mean([moment(3, bins, pdf) for bins, pdf in zip(bins_ts, pdf_ts)])
+    moment4_tr = np.mean([moment(4, bins, pdf) for bins, pdf in zip(bins_tr, pdf_tr)])
+    moment4_ts = np.mean([moment(4, bins, pdf) for bins, pdf in zip(bins_ts, pdf_ts)])
+    
+    # Calcola i centri dei bins
+    xc = 0.5 * ( bins[0:nextr-1] + bins[1:nextr] )
+    print( "TEST - Deviazione standard: ", moment2_ts )
+    print( "TRAIN - Deviazione standard: ", moment2_tr) 
+    print( "TEST - Skewness: ", moment3_ts )
+    print( "TRAIN - Skewness: ", moment3_tr)
+    print( "TEST - Flatness: ", moment4_ts )
+    print( "TRAIN - Flatness: ", moment4_tr )
+
+    
     # base_path = "../ictcf.biocuckoo.cn/patient/"
-    base_path = "dataset/"
-    csv = pd.read_csv("dataset/train_COVIDx_CT-2A.txt", sep=' ')
-    csv = np.array(csv)
-    i = 21389
-    for row in tqdm(csv[21389:]):
-        i+=1
-        print(i)
-        try:
-            name = 'dataset/2A_images/'+row[0]
-            img = cv2.imread(name, 0)
-            img, validate = auto_body_crop(img)
-            if validate:
-                cv2.imwrite(f"train/{row[0]}", img)
-        except:
-            print("ERRORE :", name)
-            continue
+    # base_path = "dataset/"
+    # csv = pd.read_csv("dataset/train_COVIDx_CT-2A.txt", sep=' ')
+    # csv = np.array(csv)
+    # i = 21389
+    # for row in tqdm(csv[21389:]):
+    #     i+=1
+    #     print(i)
+    #     try:
+    #         name = 'dataset/2A_images/'+row[0]
+    #         img = cv2.imread(name, 0)
+    #         img, validate = auto_body_crop(img)
+    #         if validate:
+    #             cv2.imwrite(f"train/{row[0]}", img)
+    #     except:
+    #         print("ERRORE :", name)
+    #         continue

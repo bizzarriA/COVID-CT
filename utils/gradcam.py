@@ -105,7 +105,7 @@ def stacked_bar(ax, probs):
 
 def gradcam_main(model, image, name, real):
     # MODEL_DIR = 'models/prova'
-    LAYERNAME = 'batch_normalization_3'
+    LAYERNAME = 'batch_normalization_2'
 
     # Class names, in order of index
     # CLASS_NAMES = ('0_normal', '1_common', '2_covid')
@@ -154,7 +154,7 @@ def gradcam_main(model, image, name, real):
     plt.subplots_adjust(hspace=0.01)
     plt.imshow(image[0])
     plt.imshow(heatmap, cmap='jet', alpha=0.4)
-    plt.savefig(f"heatmap/{real}_{classe}_{name}")
+    plt.savefig(f"heatmap/train/{real}_{classe}_{name}")
 # except:
 #     print("ERRORE GRADCAM")
 

@@ -17,20 +17,29 @@ if __name__=='__main__':
     base_path = 'dataset/'
     # _, _, _, test_df = read_csv()
     test_df = pd.read_csv('total_test_data.csv')
+    # test_df = test_df.loc[test_df['filename'].str.contains('Patient 124_')]
     test_df = test_df.iloc[:, 1:]
     print(test_df)
     x_test = []
     y_test = []
     filename = []
  
-    model_name = "model/model_ft_cropped_20220329-122916"
+    model_name = "model/model_256_total_20220331-171249"
     print("[INFO] MODEL NAME: ", model_name)
     model = tf.keras.models.load_model(model_name)
+    optimizer = tf.keras.optimizers.Adam(0.001) 
+    # print("[INFO] Model compile")
+    # model.compile(
+    #     loss="categorical_crossentropy",
+    #     optimizer=optimizer,
+    #     metrics=['acc'],
+    # )
+    model.summary()
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
     # test_df = test_df.sample(frac=1)
-    # test_df = test_df.sample(n=5000)
+    # test_df = test_df.sample(n=10)
     test_df = np.array(test_df)
-    # test_df = test_df[:100]
+    #test_df = test_df[:1000]
     print(np.shape(test_df))
     scans = []
     y_real = []
@@ -45,18 +54,20 @@ if __name__=='__main__':
     paz_name.append(current)
         
     for row in tqdm(test_df[start:]):
-        try:
+        # try:
             name = row[0]
             if os.path.exists(name):
+                # print(name)
                 paziente = name.split('_')[0][5:]
                 # print(current, paziente)
                 if paziente == current:
                     # print(name)
                     img = cv2.imread(name, 0) 
                     # print(img)
-                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = cv2.resize(img, (ISIZE, ISIZE)) / 255.
                     img = np.expand_dims(img, axis=-1)
-                    scans.append(img/255.)
+                    scans.append(img)
+                    # gradcam_main(model, img, name.split('/')[-1], y)
                     # print(np.shape(scans))
                 else:
                     ### cambio paziente!
@@ -74,10 +85,10 @@ if __name__=='__main__':
                     y_pred = np.array(y_pred)
                     count_ric = np.bincount(y_pred)
                     y_max = count_ric.argmax()
-                    # if len(count_ric)==3 and count_ric[2]>len(scans)*0.1:
-                    #     y_max = 2
-                    # elif len(count_ric)>=2 and count_ric[1]>len(scans)*0.3:
+                    # if len(count_ric)>=2 and count_ric[1]>len(scans)*0.2:
                     #     y_max = 1
+                    # elif len(count_ric)==3 and count_ric[2]>len(scans)*0.3:
+                    #     y_max = 2
                     # else:
                     #     y_max = count_ric.argmax()
                     pred_per_paz.append(y_max)
@@ -91,13 +102,13 @@ if __name__=='__main__':
                     scans = []
                     img = cv2.imread(name, 0) 
                     img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    # gradcam_main(model, img, current, y)
+                    img = np.expand_dims(img, axis=-1)/255.
+                    # gradcam_main(model, img, name.split('/')[-1], y)
                     scans.append(img)
                 
-        except:
-            # print("ERRORE img:", name)
-            continue
+        # except:
+        #     # print("ERRORE img:", name)
+        #     continue
             
     print(current, paziente)
     y_pred = []
@@ -113,6 +124,7 @@ if __name__=='__main__':
     y_pred = np.array(y_pred)
     count_ric = np.bincount(y_pred)
     y_max = count_ric.argmax()
+    print("prediction:", y_pred)
     # if len(count_ric)==3 and count_ric[2]>len(scans)*0.1:
     #     y_max = 2
     # elif len(count_ric)>=2 and count_ric[1]>len(scans)*0.3:
