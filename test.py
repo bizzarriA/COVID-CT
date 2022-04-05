@@ -13,15 +13,15 @@ if __name__=='__main__':
     crop = False
     base_path = 'dataset/'
     # _, _, _, test_df = read_csv()
-    test_df = pd.read_csv('total_train_data.csv')
-    test_df = test_df.iloc[:, 2:]
+    test_df = pd.read_csv('test.csv')
+    test_df = test_df.iloc[:, 1:]
     print(test_df)
     x_test = []
     y_test = []
     filename = []
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
-    # test_df = test_df.sample(frac=1)
-    test_df = test_df.sample(n=1000)
+    test_df = test_df.sample(frac=1)
+    # test_df = test_df.sample(n=10000)
     test_df = np.array(test_df)
     print(np.shape(test_df))
     for row in tqdm(test_df):
@@ -44,10 +44,17 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model_ft_cropped_20220329-122916"
+    model_name = "model/model_prova_20220404-162018/" 
         # try: 
     tf.keras.backend.clear_session()
-    model = tf.keras.models.load_model('model/'+ model_name)
+    model = tf.keras.models.load_model(model_name)
+    optimizer = tf.keras.optimizers.Adam(0.001) 
+    print("[INFO] Model compile")
+    model.compile(
+        loss="categorical_crossentropy",
+        optimizer=optimizer,
+        metrics=['acc'],
+    )
     model.summary()    
     y_pred = []
     scores = []

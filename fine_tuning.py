@@ -69,14 +69,14 @@ if __name__=="__main__":
 
     with mirrored_strategy.scope():
         # model = get_model(width=ISIZE, height=ISIZE)
-        model = tf.keras.models.load_model("model/model_jpeg_18_03_all_image")
+        model = tf.keras.models.load_model("model/model_256_total_20220331-171249")
     
     model.summary()
     fine_tune_at = -7
 
     # Freeze all the layers before the `fine_tune_at` layer
-    # for layer in model.layers[:fine_tune_at]:
-    #     layer.trainable = False
+    for layer in model.layers[:fine_tune_at]:
+        layer.trainable = False
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_3class.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
