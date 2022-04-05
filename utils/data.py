@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 
 
-def read_csv(img_path='dataset/2A_images'):
+def read_csv(img_path='dataset/2A_images/'):
     base_path = 'dataset/'
     train_df = pd.read_csv(base_path + 'train_COVIDx_CT-2A.txt', sep=" ", header=None)
     train_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']

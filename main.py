@@ -10,7 +10,7 @@ from utils.data import read_csv
 from utils.model import get_model
 from utils.preprocessing import auto_body_crop
 
-# Press the green button in the gutter to run the script.
+
 if __name__ == '__main__':
     ISIZE = 256
     base_path = 'dataset/2A_images/'
@@ -22,8 +22,8 @@ if __name__ == '__main__':
     # new_df = new_df.sample(n=3)
     train_df = train_df.append(new_df, ignore_index=True)
     print(len(train_df))
-    train_df = train_df.sample(frac=1)
-    train_df.to_csv('use_for_training.csv')
+    # train_df = train_df.sample(n=1000)
+    # train_df.to_csv('use_for_training.csv')
     # train_df = pd.read_csv('total_train_data.csv')
     # train_df = train_df.iloc[:, 2:]
     # train_df = train_df.sample(n=10)
@@ -39,8 +39,8 @@ if __name__ == '__main__':
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
-                y_train.append(tf.keras.utils.to_categorical(row[1], 3))
-                filename.append(name)
+                y_train.append(row[1])
+                file_name.append(name)
                 # print(y_train[-1])
         except:
             continue
@@ -58,9 +58,11 @@ if __name__ == '__main__':
     x_test = x[-n:]
     y_test = y[-n:]
     test_name = names[-n:]
-    pd.DataFrame({'name': train_name, 'label': y_train}).to_cvs('train.csv')
-    pd.DataFrame({'name': val_name, 'label': y_val}).to_cvs('val.csv')
-    pd.DataFrame({'name': test_name, 'label': y_test}).to_cvs('test.csv')
+    pd.DataFrame({'name': train_name, 'label': y_train}).to_csv('train.csv')
+    pd.DataFrame({'name': val_name, 'label': y_val}).to_csv('val.csv')
+    pd.DataFrame({'name': test_name, 'label': y_test}).to_csv('test.csv')
+    y_train = tf.keras.utils.to_categorical(y_train, 3)
+    y_val = tf.keras.utils.to_categorical(y_val, 3)
     # y_train = tf.keras.utils.to_categorical(y_train, 3)
     mirrored_strategy = tf.distribute.MirroredStrategy()
     BATCH_SIZE_PER_REPLICA = 16
@@ -100,19 +102,21 @@ if __name__ == '__main__':
     )
     model.save("model/model_prova_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     
-    # print("[INFO] Test Phase: ")
-    # y_pred = []
-    # scores = []
-    # for i in range(len(x_test)):
-    #     prediction = model.predict(x_test[i], verbose=0)
-    #     classes = np.argmax(prediction, axis=1)
-    #     prob = prediction[0, classes]
-    #     y_pred.append(classes[0])
-    #     scores.append(prediction)
-    # y_pred = np.array(y_pred)
-    # y_true = np.array(y_test)
-    # test_acc = sum(y_pred == y_true) / len(y_true)
-    # print(test_acc)
-    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    # print("Confusion matrix:\n",confusion_mtx)
-
+    y_pred = []
+    scores = []
+    predictions = model.predict(x, verbose=1, batch_size=1)
+    for prediction in tqdm(predictions):
+        classes = np.argmax(prediction)
+        prob = prediction[classes]
+        y_pred.append(classes)
+        scores.append(prediction)
+    y_pred = np.array(y_pred)
+    y_true = np.array(y_test)
+    # print(np.shape(y_pred), np.shape(y_true))
+    print(y_true[:5], y_pred[:5])
+    test_acc = sum(y_pred == y_true) / len(y_true)
+    print("[INFO] normal accuracy: ")
+    print(test_acc)
+   
+    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    print("Confusion matrix:\n",confusion_mtx)

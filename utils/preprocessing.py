@@ -67,7 +67,7 @@ def auto_body_crop(image, scale=1.0):
     bin_image = np.uint8(filt_image > thresh)
     erode_kernel = np.ones((7, 7), dtype=np.uint8)
     bin_image = cv2.erode(bin_image, erode_kernel)
-    cv2.imwrite("bin.png", bin_image*255)
+    # cv2.imwrite("bin.png", bin_image*255)
 
     # Find body contour
     sorted_contourn = body_contour(bin_image)

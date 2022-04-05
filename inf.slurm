@@ -7,4 +7,4 @@
 #SBATCH --mem=100000
 #SBATCH --gres=gpu:1
 
-python test_patient.py
+python test.py
