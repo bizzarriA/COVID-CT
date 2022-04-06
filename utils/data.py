@@ -147,48 +147,30 @@ if __name__=="__main__":
     from preprocessing import auto_body_crop
 
 
-    test_df = pd.read_csv('dataset/train_COVIDx_CT-2A.txt', sep=' ')
-    test_df.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
-    test_df = test_df.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-    test_df = test_df[test_df['filename'].str.contains('HUST')]
-    test_df = test_df.sample(n=10000)
-    id = []
-    labels = []
+    pazienti_df = pd.read_csv('pazienti_test.csv', sep=';')
+    normal = pazienti_df[pazienti_df['label']==0]
+    common = pazienti_df[pazienti_df['label']==1]
+    covid = pazienti_df[pazienti_df['label']==2]
+    normal = np.array(normal.sample(n=40))
+    common = np.array(common.sample(n=40))
+    covid = np.array(covid.sample(n=40))
     
+    total = np.concatenate((normal, common, covid), axis=0)
+    names=[]
+    labels=[]
+    base_path = 'test/'
+    dest_path = 'val/'
+    lista_file = os.listdir(base_path)
+    for paz in tqdm(total):
+        for nome in lista_file:
+            if paz[0]+'_' in nome:
+                os.system(f"mv \"{base_path}{nome}\" {dest_path}")
+                names.append(nome)
+                labels.append(paz[1])
     
-
+    val_data = pd.DataFrame({'filename': names, "label": labels})
+    val_data.to_csv('total_val_data.csv')
     
-    #test = os.listdir('test/')
-    base_path = 'dataset/2A_images/'
-    dest_path = 'train/'
-
-    for i, row in test_df.iterrows():
-        try: 
-            # HUST-Patient1-0062.png --> Patient1_0062.png
-            #name = row[0].replace("HUST-", "")
-            name_old = row[0].replace("-", "_")
-            name = name_old.replace('_', '-', 1)
-            # os.system(f"mv {name_old} {name}")
-            img = cv2.imread(base_path + row[0], 0)
-            img, validate = auto_body_crop(img)
-            if validate:
-                cv2.imwrite('new_train/' + name, img)
-            name = dest_path + name
-            print(name)
-            labels.append(row[1])
-            id.append(name)
-        except:
-            print("ERRORE file: ", name)
-            continue
-    id = np.array(id).flatten()
-    labels = np.array(labels).flatten()
-    print(np.shape(id), np.shape(labels))
-    new_data = pd.DataFrame({'filename': id, 'label': labels})
-    test_data = pd.read_csv('train_data.csv')
-    test_data = test_data.append(new_data, ignore_index=True)
-    test_data.to_csv('total_train_data.csv')
-    
-    print(id[:10])
     
     
     
