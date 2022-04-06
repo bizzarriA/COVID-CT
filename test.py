@@ -14,7 +14,7 @@ if __name__=='__main__':
     crop = False
     base_path = 'dataset/'
     # _, _, _, test_df = read_csv()
-    test_df = pd.read_csv('test.csv')
+    test_df = pd.read_csv('total_test_data.csv')
     test_df = test_df.iloc[:, 1:]
     print(test_df)
     x_test = []
@@ -31,18 +31,21 @@ if __name__=='__main__':
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
     print(np.shape(test_df))
+    val_ds = pd.read_csv('total_val_data.csv')
+    val_ds = np.array(val_ds['filename'])
     for row in tqdm(test_df):
         name = row[0]
         try:
             # print("[INFO] immagine utilizzabile: ", name)
-            if os.path.exists(name):
-                img = cv2.imread(name, 0) 
-                img = cv2.resize(img, (ISIZE, ISIZE))
-                img = np.expand_dims(img, axis=0)
-                x_test.append(img/255.)
-                y_test.append(row[1])
-                filename.append(name)
-                # gradcam_main(model, img, name.split('/')[-1], row[1])
+            if name not in val_ds:
+                if os.path.exists(name):
+                    img = cv2.imread(name, 0) 
+                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = np.expand_dims(img, axis=0)
+                    x_test.append(img/255.)
+                    y_test.append(row[1])
+                    filename.append(name)
+                    # gradcam_main(model, img, name.split('/')[-1], row[1])
         except:
             continue
     print((x_test))
@@ -54,7 +57,7 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_prova_20220404-162018/" 
+    model_name = "model/model_split_20220406-123204/" 
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
@@ -82,8 +85,6 @@ if __name__=='__main__':
         scores.append(prediction)
     y_pred = np.array(y_pred)
     y_true = np.array(y_true)
-    # print(np.shape(y_pred), np.shape(y_true))
-    print(y_true[:5], y_pred[:5])
     print("[INFO] MODEL NAME: ", model_name)
     test_acc = sum(y_pred == y_true) / len(y_true)
     print("[INFO] normal accuracy: ")
