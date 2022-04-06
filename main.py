@@ -16,54 +16,48 @@ if __name__ == '__main__':
     base_path = 'dataset/2A_images/'
     crop = True
     print("[INFO] Read Train - Val - Test:")
-    train_df, test_df, val_df, new_df = read_csv(img_path='train/')
-    print(len(train_df))
-    train_df = train_df.sample(n=10000)
-    # new_df = new_df.sample(n=3)
-    train_df = train_df.append(new_df, ignore_index=True)
-    print(len(train_df))
-    # train_df = train_df.sample(n=1000)
-    # train_df.to_csv('use_for_training.csv')
-    # train_df = pd.read_csv('total_train_data.csv')
-    # train_df = train_df.iloc[:, 2:]
-    # train_df = train_df.sample(n=10)
+
+    train_df = pd.read_csv('total_train_data.csv')
+    train_df = train_df.iloc[:, 2:]
+    train_df = train_df.sample(frac=1)
     x_train = []
     y_train = []
-    print(train_df)
-    file_name =[]
     for _, row in train_df.iterrows():
         try:
-                # print(row[0], row[1])
                 name = row[0]
                 img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
-                y_train.append(row[1])
-                file_name.append(name)
-                # print(y_train[-1])
+                y_train.append(tf.keras.utils.to_categorical(row[1], 3))
+
         except:
             continue
-    # print(np.bincount(y_train))
+    print("[INFO] immagini train per etichetta: ", np.bincount(y_train))
     x_train = np.array(x_train)
     y_train = np.array(y_train)
-    x, y, names = shuffle(x_train, y_train, file_name)
-    n = int(len(y)*0.15)
-    x_train = x[:-(2*n)]
-    y_train = y[:-(2*n)]
-    train_name = names[:-(2*n)]
-    x_val = x[-(2*n):-n]
-    y_val = y[-(2*n):-n]
-    val_name = names[-(2*n):-n]
-    x_test = x[-n:]
-    y_test = y[-n:]
-    test_name = names[-n:]
-    pd.DataFrame({'name': train_name, 'label': y_train}).to_csv('train.csv')
-    pd.DataFrame({'name': val_name, 'label': y_val}).to_csv('val.csv')
-    pd.DataFrame({'name': test_name, 'label': y_test}).to_csv('test.csv')
-    y_train = tf.keras.utils.to_categorical(y_train, 3)
-    y_val = tf.keras.utils.to_categorical(y_val, 3)
-    # y_train = tf.keras.utils.to_categorical(y_train, 3)
+    val_df = pd.read_csv('total_val_data.csv')
+    val_df = val_df.iloc[:, 1:]
+    val_df = val_df.sample(frac=1)
+    x_val = []
+    y_val = []
+    for _, row in val_df.iterrows():
+        try:
+                name = row[0]
+                img = cv2.imread(name, 0)
+                img = cv2.resize(img, (ISIZE, ISIZE))
+                img = np.expand_dims(img, axis=-1)
+                x_val.append(img / 255.)
+                y_val.append(tf.keras.utils.to_categorical(row[1], 3))
+
+        except:
+            continue
+    print("[INFO] immagini validazione per etichetta: ", np.bincount(y_val))
+    x_val = np.array(x_val)
+    y_val = np.array(y_val)
+
+
+
     mirrored_strategy = tf.distribute.MirroredStrategy()
     BATCH_SIZE_PER_REPLICA = 16
     global_batch_size = (BATCH_SIZE_PER_REPLICA *
@@ -75,7 +69,7 @@ if __name__ == '__main__':
     # checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
-    log_dir = "log/model_prova_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = "log/model_split" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
@@ -100,23 +94,23 @@ if __name__ == '__main__':
         shuffle=True,
         verbose=1
     )
-    model.save("model/model_prova_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    model.save("model/model_split_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     
-    y_pred = []
-    scores = []
-    predictions = model.predict(x, verbose=1, batch_size=1)
-    for prediction in tqdm(predictions):
-        classes = np.argmax(prediction)
-        prob = prediction[classes]
-        y_pred.append(classes)
-        scores.append(prediction)
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_test)
-    # print(np.shape(y_pred), np.shape(y_true))
-    print(y_true[:5], y_pred[:5])
-    test_acc = sum(y_pred == y_true) / len(y_true)
-    print("[INFO] normal accuracy: ")
-    print(test_acc)
+    # y_pred = []
+    # scores = []
+    # predictions = model.predict(x, verbose=1, batch_size=1)
+    # for prediction in tqdm(predictions):
+    #     classes = np.argmax(prediction)
+    #     prob = prediction[classes]
+    #     y_pred.append(classes)
+    #     scores.append(prediction)
+    # y_pred = np.array(y_pred)
+    # y_true = np.array(y_test)
+    # # print(np.shape(y_pred), np.shape(y_true))
+    # print(y_true[:5], y_pred[:5])
+    # test_acc = sum(y_pred == y_true) / len(y_true)
+    # print("[INFO] normal accuracy: ")
+    # print(test_acc)
    
-    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    print("Confusion matrix:\n",confusion_mtx)
+    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    # print("Confusion matrix:\n",confusion_mtx)
