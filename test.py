@@ -26,12 +26,13 @@ if __name__=='__main__':
     test_df = np.array(test_df)
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_ft_cropped_20220331-184752" 
+    model_name = "model/model_split_20220406-192229"
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
     print(np.shape(test_df))
     val_ds = pd.read_csv('total_val_data.csv')
+    val_ds['filename'] = 'test/' + val_ds['filename']
     val_ds = np.array(val_ds['filename'])
     for row in tqdm(test_df):
         name = row[0]
@@ -41,7 +42,7 @@ if __name__=='__main__':
                 if os.path.exists(name):
                     img = cv2.imread(name, 0) 
                     img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=0)
+                    img = np.expand_dims(img, axis=-1)
                     x_test.append(img/255.)
                     y_test.append(row[1])
                     filename.append(name)
@@ -57,7 +58,7 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_split_20220406-123204/" 
+    model_name = "model/model_split_20220406-192229"
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
@@ -76,9 +77,9 @@ if __name__=='__main__':
     # y_test = np.array(tf.keras.utils.to_categorical(y_test, 3))
     # result = model.evaluate(x_test, y_test)
     # print(dict(zip(model.metrics_names, result)))
-    for x in tqdm(x_test):
+    predictions = model.predict(x_test, verbose=1, batch_size=1)
+    for prediction in tqdm(predictions):
         # print(np.shape(x))
-        prediction = model(x, training=False)[0]
         classes = np.argmax(prediction)
         prob = prediction[classes]
         y_pred.append(classes)
