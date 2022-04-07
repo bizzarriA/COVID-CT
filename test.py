@@ -26,17 +26,20 @@ if __name__=='__main__':
     test_df = np.array(test_df)
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_ft_cropped_20220331-184752" 
+    model_name = "model/model_split_20220406-192229" 
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
     print(np.shape(test_df))
     val_ds = pd.read_csv('total_val_data.csv')
+    val_ds['filename'] = 'test/' + val_ds['filename']
+    # print(val_ds)
     val_ds = np.array(val_ds['filename'])
+    print(val_ds[:10])
     for row in tqdm(test_df):
         name = row[0]
         try:
-            # print("[INFO] immagine utilizzabile: ", name)
+            #print("[INFO] immagine utilizzabile: ", name)
             if name not in val_ds:
                 if os.path.exists(name):
                     img = cv2.imread(name, 0) 
@@ -46,9 +49,11 @@ if __name__=='__main__':
                     y_test.append(row[1])
                     filename.append(name)
                     # gradcam_main(model, img, name.split('/')[-1], row[1])
+            # else:
+            #     print("immagine in validazione: ", name)
         except:
             continue
-    print((x_test))
+    # print((x_test))
     x_test = np.array(x_test)
     
     # x_normal = x_test / 255.
