@@ -47,10 +47,10 @@ if __name__ == '__main__':
     y_train = np.array(tf.keras.utils.to_categorical(y_train, 3))
     val_df = pd.read_csv('total_val_data.csv')
     val_df = val_df.iloc[:, 1:]
+    val_df['filename'] = 'val/'+val_df['filename']
     old_val = pd.read_csv(base_path + 'val_COVIDx_CT-2A.txt', sep=" ", header=None)
     old_val.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     old_val = old_val.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
-    old_val['filename']='train/'+old_val['filename']
     val_df = val_df.append(old_train, ignore_index=True)
     val_df = val_df.sample(frac=1)
     print(val_df)
@@ -58,8 +58,8 @@ if __name__ == '__main__':
     y_val = []
     for _, row in tqdm(val_df.iterrows()):
         try:
+            name = row[0]
             if os.path.exists(name):
-                name = 'val/'+ row[0]
                 img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
