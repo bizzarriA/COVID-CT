@@ -1,6 +1,7 @@
 import cv2
 import datetime
 import numpy as np
+import os
 import pandas as pd
 from sklearn.utils import shuffle
 import tensorflow as tf
@@ -15,9 +16,9 @@ ISIZE = 256
 crop = False
 
 if __name__=="__main__":
-    _, test_df, val_df, train_df = read_csv()
-    # n_train, n_val, n_test = len(train_df), len(val_df), len(test_df)
-    # n_train, n_val, n_test = 10000, 10000, 100
+    
+    train_df = pd.read_csv('total_train_data.csv')
+    train_df = train_df.iloc[:, 2:]
     print("read train images")
     # train_df = train_df.sample(n=1000)
     x_train = []
@@ -30,11 +31,12 @@ if __name__=="__main__":
     #    if i < n_train: # and name.split('/')[-1] in valide:
             try:
                 name = row[0]
-                img = cv2.imread(name, 0)
-                img = cv2.resize(img, (ISIZE, ISIZE))
-                img = np.expand_dims(img, axis=-1)
-                x_train.append(img/255.)
-                y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
+                if os.path.exists(name):
+                    img = cv2.imread(name, 0)
+                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = np.expand_dims(img, axis=-1)
+                    x_train.append(img/255.)
+                    y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
             except:
                 continue
                 #print("ERRORE ", name)
@@ -46,12 +48,22 @@ if __name__=="__main__":
     y_train = np.array(y_train)
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     print("read val images")
-    x, y = shuffle(x_train, y_train)
-    n = int(len(y)*0.8)
-    x_train = x[:n]
-    y_train = y[:n]
-    x_val = x[n:]
-    y_val = y[n:]
+    val_df = pd.read_csv('total_val_data.csv')
+    val_df = val_df.iloc[:, 1:]
+    x_val = []
+    y_val = []
+    for _, row in tqdm(val_df.iterrows()):
+        try:
+            name = row[0]
+            if os.path.exists(name):
+                img = cv2.imread(name, 0)
+                img = cv2.resize(img, (ISIZE, ISIZE))
+                img = np.expand_dims(img, axis=-1)
+                x_val.append(img / 255.)
+                y_val.append(row[1])
+
+        except:
+            continue
     print(np.shape(x_train), np.shape(y_train), np.shape(x_val), np.shape(y_val))
     ### Mirrored strategy ###
     mirrored_strategy = tf.distribute.MirroredStrategy()
@@ -69,7 +81,7 @@ if __name__=="__main__":
 
     with mirrored_strategy.scope():
         # model = get_model(width=ISIZE, height=ISIZE)
-        model = tf.keras.models.load_model("model/model_256_total_20220331-171249")
+        model = tf.keras.models.load_model("model/model_split_20220406-192229")
     
     model.summary()
     fine_tune_at = -7
