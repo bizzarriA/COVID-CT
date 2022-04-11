@@ -61,7 +61,7 @@ if __name__=='__main__':
     print("lettura DS finita")
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_split_20220406-192229"
+    model_name = "model/model_split_20220406-123204"
         # try: 
     tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)

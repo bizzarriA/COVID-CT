@@ -24,7 +24,7 @@ if __name__=='__main__':
     y_test = []
     filename = []
  
-    model_name = "model/model_256_total_20220331-171249"
+    model_name = "model/model_split_20220406-123204"
     print("[INFO] MODEL NAME: ", model_name)
     model = tf.keras.models.load_model(model_name)
     optimizer = tf.keras.optimizers.Adam(0.001) 
