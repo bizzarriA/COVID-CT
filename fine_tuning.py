@@ -50,6 +50,7 @@ if __name__=="__main__":
     print("read val images")
     val_df = pd.read_csv('total_val_data.csv')
     val_df = val_df.iloc[:, 1:]
+    val_df['filename'] = 'val/' + val_df['filename']
     x_val = []
     y_val = []
     for _, row in tqdm(val_df.iterrows()):
@@ -64,6 +65,8 @@ if __name__=="__main__":
 
         except:
             continue
+    x_val = np.array(x_val)
+    y_val = np.array(tf.keras.utils.to_categorical(y_val, 3))
     print(np.shape(x_train), np.shape(y_train), np.shape(x_val), np.shape(y_val))
     ### Mirrored strategy ###
     mirrored_strategy = tf.distribute.MirroredStrategy()
@@ -118,7 +121,7 @@ if __name__=="__main__":
         shuffle=True,
         verbose=1
     )
-    model.save("model/model_ft_cropped_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    model.save("model/model_ft_split_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     # x_test = []
     # y_test = []
     # filename = []
