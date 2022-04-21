@@ -1,5 +1,7 @@
+from enum import auto
 import cv2
 import matplotlib.pyplot as plt
+import nibabel
 import numpy as np
 import os
 import pandas as pd
@@ -72,7 +74,10 @@ def auto_body_crop(image, scale=1.0):
     # Find body contour
     sorted_contourn = body_contour(bin_image)
     # Get bbox
-    lung1, lung2 = sorted_contourn[1][1],  sorted_contourn[2][1]
+    try:
+        lung1, lung2 = sorted_contourn[1][1],  sorted_contourn[2][1]
+    except:
+        return None, False
     xmin1, xmax1, ymin1, ymax1 = lung1[:, 0, 0].min(),lung1[:, 0, 0].max(),lung1[:, 0, 1].min(),lung1[:, 0, 1].max()
     xmin2, xmax2, ymin2, ymax2 = lung2[:, 0, 0].min(),lung2[:, 0, 0].max(),lung2[:, 0, 1].min(),lung2[:, 0, 1].max()
     xmin = min(xmin1, xmin2)
@@ -91,8 +96,8 @@ def auto_body_crop(image, scale=1.0):
         ymax = int(center[1] + height/2)
     
     minimo = int(np.shape(image)[1]*0.10)
-    nx = int(np.shape(image)[0]*0.30)  
-    ny = int(np.shape(image)[1]*0.30)        
+    nx = int(np.shape(image)[0]*0.40)  
+    ny = int(np.shape(image)[1]*0.40)        
     #draw it
     # controllo bordi
     top = xmin
@@ -111,80 +116,18 @@ def auto_body_crop(image, scale=1.0):
     return image[ymin:ymax, xmin:xmax], validate
 
 if __name__=="__main__":
-    ## LEGGO IMMAGINE TEST E IMMAGINE TRAINING RANDOM:
-    test_df = pd.read_csv('total_test_data.csv')
-    test_df = test_df['filename']
-    train_df = pd.read_csv('total_train_data.csv')
-    train_df = train_df['filename']
-    test_name = np.array(test_df.sample(n=100))
-    train_name = np.array(train_df.sample(n=100))
-    test_img = []
-    train_img = []
-    for name in test_name:
-        # print(name)
-        if os.path.exists(name):
-            test_img.append(cv2.imread(name) / 255.)
-    for name in train_name:
-        if os.path.exists(name):
-            train_img.append(cv2.imread(name) / 255.)
-    # print(train_name, '\n', test_name)
-    Nc = 100
-    pdf_tr = []
-    bins_tr = []
-    for img in train_img:
-        pdf, bins = np.histogram(img, Nc, density = True )
-        nextr = len( bins )
-        pdf_tr.append(pdf)
-        bins_tr.append(bins)
+    base_path = 'unife/'
+    pazienti = os.listdir(base_path)
+    dir = 'dataset/unife/preproc/'
+    if not os.path.exists(dir):
+        os.system("mkdir " + dir)
+    for p in pazienti:
+        nib_p = nibabel.load(base_path + p).get_data()
+        nib_p = nib_p.transpose(2,1,0)
+        for i, scan in enumerate(nib_p):
+            scan = hu_to_uint8(scan, HU_WINDOW_WIDTH, HU_WINDOW_CENTER)
+            scan, validate = auto_body_crop(scan)
+            if validate:
+                cv2.imwrite(f"{dir}{p[:-7]}_{i}.png", scan)
         
-    pdf_ts = []
-    bins_ts = []
-    for img in test_img:
-        pdf, bins = np.histogram(img, Nc, density = True )
-        nextr = len( bins )
-        pdf_ts.append(pdf)
-        bins_ts.append(bins)
-
-    # fig, axs = plt.subplots(2)
-    # axs[0].bar( bins_tr[:nextr_tr-1], pdf_tr, dx_tr, color = "g" )
-    # axs[0].set_title('train')
-    # axs[1].bar( bins[:nextr-1], pdf, dx, color = "g" )
-    # axs[1].set_title('test')
-    
-    plt.show()
-
-    
-    moment2_tr = np.mean([moment(2, bins, pdf) for bins, pdf in zip(bins_tr, pdf_tr)])
-    moment2_ts = np.mean([moment(2, bins, pdf) for bins, pdf in zip(bins_ts, pdf_ts)])
-    moment3_tr = np.mean([moment(3, bins, pdf) for bins, pdf in zip(bins_tr, pdf_tr)])
-    moment3_ts = np.mean([moment(3, bins, pdf) for bins, pdf in zip(bins_ts, pdf_ts)])
-    moment4_tr = np.mean([moment(4, bins, pdf) for bins, pdf in zip(bins_tr, pdf_tr)])
-    moment4_ts = np.mean([moment(4, bins, pdf) for bins, pdf in zip(bins_ts, pdf_ts)])
-    
-    # Calcola i centri dei bins
-    xc = 0.5 * ( bins[0:nextr-1] + bins[1:nextr] )
-    print( "TEST - Deviazione standard: ", moment2_ts )
-    print( "TRAIN - Deviazione standard: ", moment2_tr) 
-    print( "TEST - Skewness: ", moment3_ts )
-    print( "TRAIN - Skewness: ", moment3_tr)
-    print( "TEST - Flatness: ", moment4_ts )
-    print( "TRAIN - Flatness: ", moment4_tr )
-
-    
-    # base_path = "../ictcf.biocuckoo.cn/patient/"
-    # base_path = "dataset/"
-    # csv = pd.read_csv("dataset/train_COVIDx_CT-2A.txt", sep=' ')
-    # csv = np.array(csv)
-    # i = 21389
-    # for row in tqdm(csv[21389:]):
-    #     i+=1
-    #     print(i)
-    #     try:
-    #         name = 'dataset/2A_images/'+row[0]
-    #         img = cv2.imread(name, 0)
-    #         img, validate = auto_body_crop(img)
-    #         if validate:
-    #             cv2.imwrite(f"train/{row[0]}", img)
-    #     except:
-    #         print("ERRORE :", name)
-    #         continue
+            

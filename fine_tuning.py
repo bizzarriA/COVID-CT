@@ -8,10 +8,11 @@ import tensorflow as tf
 from tqdm import tqdm
 
 from utils.data import read_csv
+from utils.model import get_model
 from utils.preprocessing import auto_body_crop
 
-N_CLASSI = 3
-CLASSI = ['Normal', 'Common_pneuma', 'Covid_19']
+N_CLASSI = 1
+CLASSI = ['Common_pneuma', 'Covid_19']
 ISIZE = 256
 crop = False
 
@@ -20,7 +21,7 @@ if __name__=="__main__":
     train_df = pd.read_csv('total_train_data.csv')
     train_df = train_df.iloc[:, 2:]
     print("read train images")
-    # train_df = train_df.sample(n=1000)
+    # train_df = train_df.sample(n=10)
     x_train = []
     y_train = []
     # valide = os.listdir(base_path)
@@ -31,12 +32,14 @@ if __name__=="__main__":
     #    if i < n_train: # and name.split('/')[-1] in valide:
             try:
                 name = row[0]
-                if os.path.exists(name):
-                    img = cv2.imread(name, 0)
-                    img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    x_train.append(img/255.)
-                    y_train.append(tf.keras.utils.to_categorical(row[1], N_CLASSI))
+                if row[1] != 0:
+                    if os.path.exists(name):
+                        img = cv2.imread(name, 0)
+                        img = cv2.resize(img, (ISIZE, ISIZE))
+                        img = np.expand_dims(img, axis=-1)
+                        x_train.append(img/255.)
+                        y = row[1]-1
+                        y_train.append(y)
             except:
                 continue
                 #print("ERRORE ", name)
@@ -56,12 +59,14 @@ if __name__=="__main__":
     for _, row in tqdm(val_df.iterrows()):
         try:
             name = row[0]
-            if os.path.exists(name):
-                img = cv2.imread(name, 0)
-                img = cv2.resize(img, (ISIZE, ISIZE))
-                img = np.expand_dims(img, axis=-1)
-                x_val.append(img / 255.)
-                y_val.append(row[1])
+            if row[1] != 0:
+                if os.path.exists(name):
+                    img = cv2.imread(name, 0)
+                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = np.expand_dims(img, axis=-1)
+                    x_val.append(img / 255.)
+                    y = row[1]-1
+                    y_val.append(y)
 
         except:
             continue
@@ -83,8 +88,8 @@ if __name__=="__main__":
     # dataset = mirrored_strategy.experimental_distribute_dataset(dataset)
 
     with mirrored_strategy.scope():
-        # model = get_model(width=ISIZE, height=ISIZE)
-        model = tf.keras.models.load_model("model/model_split_20220406-192229")
+        model = get_model(width=ISIZE, height=ISIZE, n_class=N_CLASSI)
+        # model = tf.keras.models.load_model("model/model_split_20220406-192229")
     
     model.summary()
     fine_tune_at = -7
@@ -95,7 +100,7 @@ if __name__=="__main__":
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_3class.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
-    log_dir = "log/model_3_class_tf_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = "log/model_binary_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
@@ -106,7 +111,7 @@ if __name__=="__main__":
     optimizer = tf.keras.optimizers.Adam(0.001) 
     print("[INFO] Model compile")
     model.compile(
-        loss="categorical_crossentropy",
+        loss="binary_crossentropy",
         optimizer=optimizer,
         metrics=['acc'],
     )
@@ -121,45 +126,5 @@ if __name__=="__main__":
         shuffle=True,
         verbose=1
     )
-    model.save("model/model_ft_split_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-    # x_test = []
-    # y_test = []
-    # filename = []
-    # test_df = test_df.sample(frac=1)
-    # print(test_df.values.tolist()[0])
-    # for i, row in tqdm(test_df.iterrows()):
-    #     if i < n_test:
-    #         try:
-    #             name = row[0]
-    #             img = cv2.imread(name, 0) / 255
-    #             bbox = ([int(row[2]), int(row[3]), int(row[4]), int(row[5])])
-    #             img = img[bbox[1]:bbox[3], bbox[0]:bbox[2]]
-    #             img = cv2.resize(img, (256, 256))
-    #             img = np.expand_dims(img, axis=-1)
-    #             x_test.append(img)
-    #             y_test.append(row[1])
-    # #            filename.append(name)
-    #         except:
-    #             print("ERRORE ", name)
-    #     else:
-    #         break
-    # x_test = np.array(x_test)
-    # y_true = np.array(y_test)
-    # print(np.shape(x_test))
-    # print("lettura DS finita")
-    # y_pred = []
-    # scores = []
-    # for i in range(len(x_test)):
-    #     prediction = model.predict(x_test[i], verbose=0)
-    #     classes = np.argmax(prediction, axis=1)
-    #     prob = prediction[0, classes]
-    #     y_pred.append(classes[0])
-    #     scores.append(prediction)
-    # y_pred = np.array(y_pred)
-    # y_true = np.array(y_true)
-    # test_acc = sum(y_pred == y_true) / len(y_true)
-    # print(test_acc)
-    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    # print("Confusion matrix:\n",confusion_mtx)
-    # result = pd.DataFrame({'id': filename, 'y_pred':y_pred, 'y_true':y_true})
-    # result.to_csv('result_3_class.csv')
+    model.save("model/model_binary_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    
