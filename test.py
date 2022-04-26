@@ -51,11 +51,11 @@ if __name__=='__main__':
     filename = []
     # test_df = test_df[test_df['filename'].str.contains('HUST')]
     # test_df = test_df.sample(frac=1)
-    test_df = test_df.sample(n=100)
+    # test_df = test_df.sample(n=100)
     test_df = np.array(test_df)
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_split_20220406-192229"
+    model_name = "model/model_binary_20220421-174629"
         # try: 
     # tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
@@ -68,12 +68,13 @@ if __name__=='__main__':
         try:
             #print("[INFO] immagine utilizzabile: ", name)
             if name not in val_ds:
-                if os.path.exists(name):
+                if os.path.exists(name) and row[1] != 0:
                     img = cv2.imread(name, 0) 
                     img = cv2.resize(img, (ISIZE, ISIZE))
                     img = np.expand_dims(img, axis=-1)
                     x_test.append(img/255.)
-                    y_test.append(row[1])
+                    y = row[1] - 1
+                    y_test.append(y)
                     filename.append(name)
                     # gradcam_main(model, img, name.split('/')[-1], row[1])
         except:
@@ -83,46 +84,44 @@ if __name__=='__main__':
     y_true = np.array(y_test)
     print(np.shape(x_test))
     print("lettura DS finita")
-    model_names = os.listdir('model/')
-    model_name = "model/model_split_20220406-123204" 
-    model = tf.keras.models.load_model(model_name)
     y_pred = []
     scores = []
 
-    predictions = model.predict(x_test, verbose=1, batch_size=1)
-    for prediction in tqdm(predictions):
-        classes = np.argmax(prediction)
-        prob = prediction[classes]
-        y_pred.append(classes)
-        scores.append(prediction)
-    y_pred = np.array(y_pred)
-    y_true = np.array(y_true)
-    print("[INFO] MODEL NAME: ", model_name)
-    test_acc = sum(y_pred == y_true) / len(y_true)
-    print("[INFO] normal accuracy: ")
-    print(test_acc)
+    # predictions = model.predict(x_test, verbose=1, batch_size=1)
+    # for prediction in tqdm(predictions):
+    #     classes = np.argmax(prediction)
+    #     prob = prediction[classes]
+    #     y_pred.append(classes)
+    #     scores.append(prediction)
+    # y_pred = np.array(y_pred)
+    loss, acc = model.evaluate(x_test, y_true)
+    print(loss, acc)
+    # print("[INFO] MODEL NAME: ", model_name)
+    # test_acc = sum(y_pred == y_true) / len(y_true)
+    # print("[INFO] normal accuracy: ")
+    # print(test_acc)
    
-    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    print("Confusion matrix:\n",confusion_mtx)
+    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    # print("Confusion matrix:\n",confusion_mtx)
     
-    target= ['normal', 'common', 'covid']
+    # target= ['normal', 'common', 'covid']
     
-    # set plot figure size
-    fig, c_ax = plt.subplots(1,1, figsize = (12, 8))
+    # # set plot figure size
+    # fig, c_ax = plt.subplots(1,1, figsize = (12, 8))
     
-    print('ROC AUC score:', multiclass_roc_auc_score(y_true, y_pred))
+    # print('ROC AUC score:', multiclass_roc_auc_score(y_true, y_pred))
 
-    c_ax.legend()
-    c_ax.set_xlabel('False Positive Rate')
-    c_ax.set_ylabel('True Positive Rate')
-    plt.show()
-    pr_display = multiclass_precision_recall_score(y_true, y_pred)
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
+    # c_ax.legend()
+    # c_ax.set_xlabel('False Positive Rate')
+    # c_ax.set_ylabel('True Positive Rate')
+    # plt.show()
+    # pr_display = multiclass_precision_recall_score(y_true, y_pred)
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
 
-    # roc_display.plot(ax=ax1)
-    # pr_display.plot(ax=ax2)
-    plt.show()
+    # # roc_display.plot(ax=ax1)
+    # # pr_display.plot(ax=ax2)
+    # plt.show()
 
-    # result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
-    # result.to_csv('result_3_class.csv')
+    # # result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
+    # # result.to_csv('result_3_class.csv')
 

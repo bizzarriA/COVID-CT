@@ -14,6 +14,7 @@ from utils.preprocessing import auto_body_crop
 
 if __name__ == '__main__':
     ISIZE = 256
+    N_CALSSI = 2
     base_path = 'dataset/'
     crop = True
     print("[INFO] Read Train - Val - Test:")
@@ -24,7 +25,7 @@ if __name__ == '__main__':
     old_train.columns = ['filename', 'label', 'xmin', 'ymin', 'xmax', 'ymax']
     old_train = old_train.drop(['xmin', 'ymin', 'xmax', 'ymax'], axis=1)
     old_train['filename']='train/'+old_train['filename']
-    old_train = old_train.sample(n=20000)
+    # old_train = old_train.sample(n=20000)
     train_df = train_df.append(old_train, ignore_index=True)
     train_df = train_df.sample(frac=1)
     print(train_df)
@@ -33,18 +34,19 @@ if __name__ == '__main__':
     for _, row in tqdm(train_df.iterrows()):
         try:
             name = row[0]
-            if os.path.exists(name):  
+            if os.path.exists(name) and row[1] != 0:  
                 img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_train.append(img / 255.)
-                y_train.append(row[1])
+                y = row[1] - 1
+                y_train.append(y)
 
         except:
             continue
     print("[INFO] immagini train per etichetta: ", np.bincount(y_train))
     x_train = np.array(x_train)
-    y_train = np.array(tf.keras.utils.to_categorical(y_train, 3))
+    y_train = np.array(tf.keras.utils.to_categorical(y_train, N_CALSSI))
     val_df = pd.read_csv('total_val_data.csv')
     val_df = val_df.iloc[:, 1:]
     val_df['filename'] = 'val/'+val_df['filename']
@@ -59,18 +61,19 @@ if __name__ == '__main__':
     for _, row in tqdm(val_df.iterrows()):
         try:
             name = row[0]
-            if os.path.exists(name):
+            if os.path.exists(name) and row[1] != 0:
                 img = cv2.imread(name, 0)
                 img = cv2.resize(img, (ISIZE, ISIZE))
                 img = np.expand_dims(img, axis=-1)
                 x_val.append(img / 255.)
-                y_val.append(row[1])
+                y = row[1] - 1
+                y_val.append(y)
 
         except:
             continue
     print("[INFO] immagini validazione per etichetta: ", np.bincount(y_val))
     x_val = np.array(x_val)
-    y_val = np.array(tf.keras.utils.to_categorical(y_val, 3))
+    y_val = np.array(tf.keras.utils.to_categorical(y_val, N_CALSSI))
 
 
 
@@ -81,11 +84,11 @@ if __name__ == '__main__':
 
     print(mirrored_strategy.num_replicas_in_sync)
     with mirrored_strategy.scope():
-        model = get_model(width=256, height=256)
+        model = get_model(width=256, height=256, n_class=N_CALSSI)
     # checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
-    log_dir = "log/model_split_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = "log/model_binaty_totale_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
@@ -110,7 +113,7 @@ if __name__ == '__main__':
         shuffle=True,
         verbose=1
     )
-    model.save("model/model_split_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    model.save("model/model_binary_totale_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
     
     # y_pred = []
     # scores = []
