@@ -32,14 +32,16 @@ if __name__=="__main__":
     #    if i < n_train: # and name.split('/')[-1] in valide:
             try:
                 name = row[0]
-                if row[1] != 0:
-                    if os.path.exists(name):
-                        img = cv2.imread(name, 0)
-                        img = cv2.resize(img, (ISIZE, ISIZE))
-                        img = np.expand_dims(img, axis=-1)
-                        x_train.append(img/255.)
-                        y = row[1]-1
-                        y_train.append(y)
+                if os.path.exists(name):
+                    img = cv2.imread(name, 0)
+                    img = cv2.resize(img, (ISIZE, ISIZE))
+                    img = np.expand_dims(img, axis=-1)
+                    x_train.append(img/255.)
+                    if row[1] == 2:
+                        y = 1
+                    else:
+                        y = row[1]
+                    y_train.append(y)
             except:
                 continue
                 #print("ERRORE ", name)
@@ -59,14 +61,16 @@ if __name__=="__main__":
     for _, row in tqdm(val_df.iterrows()):
         try:
             name = row[0]
-            if row[1] != 0:
-                if os.path.exists(name):
-                    img = cv2.imread(name, 0)
-                    img = cv2.resize(img, (ISIZE, ISIZE))
-                    img = np.expand_dims(img, axis=-1)
-                    x_val.append(img / 255.)
-                    y = row[1]-1
-                    y_val.append(y)
+            if os.path.exists(name):
+                img = cv2.imread(name, 0)
+                img = cv2.resize(img, (ISIZE, ISIZE))
+                img = np.expand_dims(img, axis=-1)
+                x_val.append(img / 255.)
+                if row[1] == 2:
+                    y = 1
+                else:
+                    y = row[1]
+                y_val.append(y)
 
         except:
             continue
