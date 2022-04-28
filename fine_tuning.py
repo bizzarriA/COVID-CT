@@ -21,7 +21,7 @@ if __name__=="__main__":
     train_df = pd.read_csv('total_train_data.csv')
     train_df = train_df.iloc[:, 2:]
     print("read train images")
-    # train_df = train_df.sample(n=10)
+    train_df = train_df.sample(frac=1)
     x_train = []
     y_train = []
     # valide = os.listdir(base_path)
@@ -49,12 +49,19 @@ if __name__=="__main__":
         #     if i>=n_train:
       #      break
         #     continue
+    num_ric = np.bincount(y_train)
+    total = len(y_train)
+    weight_for_0 = (1 / num_ric[0]) * (total) / 2.0
+    weight_for_1 = (1 / num_ric[1]) * (total) / 2.0
+    class_weight = {0: weight_for_0, 1: weight_for_1}
+    print(class_weight)
     x_train = np.array(x_train)
     y_train = np.array(y_train)
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     print("read val images")
     val_df = pd.read_csv('total_val_data.csv')
     val_df = val_df.iloc[:, 1:]
+    val_df = val_df.sample(frac=1)
     val_df['filename'] = 'val/' + val_df['filename']
     x_val = []
     y_val = []
@@ -120,16 +127,18 @@ if __name__=="__main__":
         optimizer=optimizer,
         metrics=['acc'],
     )
-    
-    model.fit(
-        x_train, y_train,
-        validation_data=(x_val, y_val),
-        epochs=100,
-        callbacks=callbacks,
-        # steps_per_epoch = 100,
-        batch_size=global_batch_size,
-        shuffle=True,
-        verbose=1
-    )
-    model.save("model/model_2_calssi_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-    
+    try: 
+        model.fit(
+            x_train, y_train,
+            validation_data=(x_val, y_val),
+            epochs=100,
+            callbacks=callbacks,
+            # steps_per_epoch = 100,
+            class_weight=class_weight,
+            batch_size=global_batch_size,
+            shuffle=True,
+            verbose=1
+        )
+        model.save("model/model_2_calssi_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    except:
+        print("fine tempo")

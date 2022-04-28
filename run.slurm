@@ -4,7 +4,7 @@
 #SBATCH --time=8:00:00
 #SBATCH -N 1
 #SBATCH -p m100_usr_prod
-#SBATCH --gres=gpu:4
-#SBATCH --mem=246000
+#SBATCH --gres=gpu:2
+#SBATCH --mem=150000
 
 python fine_tuning.py
