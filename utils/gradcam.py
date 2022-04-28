@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
+import os
+import pandas as pd
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
-from utils.preprocessing import auto_body_crop
+# from utils.preprocessing import auto_body_crop
 
 def load_and_preprocess(image_files, width=256, height=256):
     """Loads and preprocesses images for inference"""
@@ -154,7 +156,7 @@ def gradcam_main(model, image, name, real):
     plt.subplots_adjust(hspace=0.01)
     plt.imshow(image[0])
     plt.imshow(heatmap, cmap='jet', alpha=0.4)
-    plt.savefig(f"heatmap/train/{real}_{classe}_{name}")
+    plt.savefig(f"heatmap/{real}_{classe}_{name}")
 # except:
 #     print("ERRORE GRADCAM")
 
@@ -162,3 +164,24 @@ def gradcam_main(model, image, name, real):
     # print('Do not use this prediction for self-diagnosis. '
     #     'You should check with your local authorities for '
     #     'the latest advice on seeking medical assistance.')
+
+if __name__=="__main__":
+    test_df = pd.read_csv('total_test_data.csv')
+    test_df = test_df.iloc[:, 1:]
+    print(test_df)
+    test_df = np.array(test_df.sample(n=30))
+    ISIZE = 256
+    model = tf.keras.models.load_model('model/model_2_calssi_20220428-115231')
+    for p in test_df:
+        # print(p[0])
+        if os.path.exists(p[0]):
+            img = cv2.imread(p[0], 0) 
+            img = cv2.resize(img, (ISIZE, ISIZE))
+            img = np.expand_dims(img, axis=-1)
+            img = img / 255.
+            if p[1] == 2:
+                y = 1
+            else:
+                y = p[1]
+            gradcam_main(model, img, p[0].split('/')[-1], y)
+    
