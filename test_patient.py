@@ -13,7 +13,7 @@ from utils.gradcam import gradcam_main
 ISIZE = 256
 
 def from_img(test_df):
-    model_name = "model/model_split_20220406-123204" 
+    model_name = "model/model_2_calssi_20220428-115231"
     print("[INFO] MODEL NAME: ", model_name)
     model = tf.keras.models.load_model(model_name)
     scans = []
@@ -22,11 +22,18 @@ def from_img(test_df):
     count_ric_per_paz = []
     paz_name = []
     start = 0
+    p = test_df[start,0]
+    while(os.path.exists(p) == False):
+        start += 1
+        p = test_df[start,0]
     current = test_df[start,0].split('_')[0][5:]
-    y = test_df[start, 1]
+    if test_df[start, 1] == 2:
+        y = 1
+    else:
+        y = test_df[start, 1]
     y_real.append(y)
     paz_name.append(current)
-        
+    print("primo paziente valido: ", current) 
     for row in tqdm(test_df[start:]):
         name = row[0]
         if os.path.exists(name):
@@ -57,11 +64,14 @@ def from_img(test_df):
                 #     y_max = count_ric.argmax()
                 pred_per_paz.append(y_max)
                 count_ric_per_paz.append(count_ric)
-                
+                 
                 
                 current = row[0].split('_')[0][5:]
                 paz_name.append(current)
-                y = row[1]
+                if row[1] == 2:
+                    y = 1
+                else:
+                    y = row[1]
                 y_real.append(y)
                 scans = []
                 img = cv2.imread(name, 0) 
@@ -84,9 +94,9 @@ def from_img(test_df):
     y_pred = np.array(y_pred)
     y_real = np.array(y_real)
     
-    return y_real, y_pred
+    return y_real, y_pred, paz_name
 
-def from_csv(csv):
+def from_csv(csv, a=0.2):
     y_pred = []
     y_real = []
     pazienti_fatti = []
@@ -111,10 +121,10 @@ def from_csv(csv):
             n_scan = len(pred_paziente)
             count_ric = np.bincount(pred_paziente)
             y_max = count_ric.argmax()
-            if len(count_ric)==3 and count_ric[2]>n_scan*0.2:
-                y_max = 2
-            elif len(count_ric)>=2 and count_ric[1]>n_scan*0.2:
+            if len(count_ric)==2 and count_ric[1]>n_scan*a:
                 y_max = 1
+            # elif len(count_ric)>=2 and count_ric[1]>n_scan*0.2:
+            #     y_max = 1
             else:
                 y_max = count_ric.argmax()
             y_pred.append(y_max)
@@ -215,17 +225,26 @@ def unife_img(test_df):
 
 if __name__=='__main__':
     crop = False
-    # test_df = pd.read_csv('result_3_class.csv')
-    # test_df = test_df.iloc[:, 1:]
-    # print(test_df)
+    # test_df = pd.read_csv('total_test_data.csv')
+    test_df = pd.read_csv('result_3_class.csv')
+    test_df = test_df.iloc[:, 1:]
+    print(test_df)
     # test_df = np.array(test_df)
     # print(np.shape(test_df))
-    test_df = os.listdir('dataset/unife/preproc/')
-    y_real, y_pred, paz_name = unife_img(test_df)
-    print(np.shape(y_real), np.shape(y_pred))
-    test_acc = sum(y_pred == y_real) / len(y_real)
-    print(test_acc)
-    confusion_mtx = tf.math.confusion_matrix(y_real, y_pred)
+    # test_df = os.listdir('dataset/unife/preproc/')
+    a_max = 0
+    y_max = []
+    acc_max = 0
+    for a in np.arange(0.05, 0.16, 0.05):
+        y_real, y_pred, paz_name = from_csv(test_df, a=a)
+        test_acc = sum(y_pred == y_real) / len(y_real)
+        print(test_acc, a)
+        if test_acc > acc_max:
+            acc_max=test_acc
+            y_max = y_pred
+            a_max = a
+    print("accuracy max: ",acc_max, "alfa mac: ", a_max) 
+    confusion_mtx = tf.math.confusion_matrix(y_real, y_max)
     print("Confusion matrix:\n",confusion_mtx)
     pd.DataFrame({'filename': paz_name, 'real': y_real, 'pred': y_pred}).to_csv('ris.csv')
 

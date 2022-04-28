@@ -11,7 +11,7 @@ from utils.data import read_csv
 from utils.model import get_model
 from utils.preprocessing import auto_body_crop
 
-N_CLASSI = 1
+N_CLASSI = 2
 CLASSI = ['Common_pneuma', 'Covid_19']
 ISIZE = 256
 crop = False
@@ -21,7 +21,7 @@ if __name__=="__main__":
     train_df = pd.read_csv('total_train_data.csv')
     train_df = train_df.iloc[:, 2:]
     print("read train images")
-    # train_df = train_df.sample(n=10)
+    train_df = train_df.sample(frac=1)
     x_train = []
     y_train = []
     # valide = os.listdir(base_path)
@@ -49,12 +49,19 @@ if __name__=="__main__":
         #     if i>=n_train:
       #      break
         #     continue
+    num_ric = np.bincount(y_train)
+    total = len(y_train)
+    weight_for_0 = (1 / num_ric[0]) * (total) / 2.0
+    weight_for_1 = (1 / num_ric[1]) * (total) / 2.0
+    class_weight = {0: weight_for_0, 1: weight_for_1}
+    print(class_weight)
     x_train = np.array(x_train)
     y_train = np.array(y_train)
     print("Shape x and y train ",np.shape(x_train), np.shape(y_train))
     print("read val images")
     val_df = pd.read_csv('total_val_data.csv')
     val_df = val_df.iloc[:, 1:]
+    val_df = val_df.sample(frac=1)
     val_df['filename'] = 'val/' + val_df['filename']
     x_val = []
     y_val = []
@@ -75,7 +82,8 @@ if __name__=="__main__":
         except:
             continue
     x_val = np.array(x_val)
-    y_val = np.array(tf.keras.utils.to_categorical(y_val, 3))
+    y_val = np.array(tf.keras.utils.to_categorical(y_val, N_CLASSI))
+    y_train = np.array(tf.keras.utils.to_categorical(y_train, N_CLASSI)) 
     print(np.shape(x_train), np.shape(y_train), np.shape(x_val), np.shape(y_val))
     ### Mirrored strategy ###
     mirrored_strategy = tf.distribute.MirroredStrategy()
@@ -96,15 +104,15 @@ if __name__=="__main__":
         # model = tf.keras.models.load_model("model/model_split_20220406-192229")
     
     model.summary()
-    fine_tune_at = -7
+    # fine_tune_at = -7
 
     # Freeze all the layers before the `fine_tune_at` layer
-    for layer in model.layers[:fine_tune_at]:
-        layer.trainable = False
+    # for layer in model.layers[:fine_tune_at]:
+      #   layer.trainable = False
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint("model_jpeg_3class.h5", save_best_only=True)
     early_stopping_cb = tf.keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=20,
                                                          restore_best_weights=True)
-    log_dir = "log/model_binary_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir = "log/model_2_calssi_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(patience=3, verbose=1),
                  tensorboard_callback,
@@ -115,20 +123,22 @@ if __name__=="__main__":
     optimizer = tf.keras.optimizers.Adam(0.001) 
     print("[INFO] Model compile")
     model.compile(
-        loss="binary_crossentropy",
+        loss="categorical_crossentropy",
         optimizer=optimizer,
         metrics=['acc'],
     )
-    
-    model.fit(
-        x_train, y_train,
-        validation_data=(x_val, y_val),
-        epochs=100,
-        callbacks=callbacks,
-        # steps_per_epoch = 100,
-        batch_size=global_batch_size,
-        shuffle=True,
-        verbose=1
-    )
-    model.save("model/model_binary_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
-    
+    try: 
+        model.fit(
+            x_train, y_train,
+            validation_data=(x_val, y_val),
+            epochs=100,
+            callbacks=callbacks,
+            # steps_per_epoch = 100,
+            class_weight=class_weight,
+            batch_size=global_batch_size,
+            shuffle=True,
+            verbose=1
+        )
+        model.save("model/model_2_calssi_" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    except:
+        print("fine tempo")

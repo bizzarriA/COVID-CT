@@ -55,7 +55,7 @@ if __name__=='__main__':
     test_df = np.array(test_df)
     model_names = os.listdir('model/')
     # for model_name in model_names:
-    model_name = "model/model_binary_20220421-174629"
+    model_name = "model/model_2_calssi_20220428-114212"
         # try: 
     # tf.keras.backend.clear_session()
     model = tf.keras.models.load_model(model_name)
@@ -68,12 +68,15 @@ if __name__=='__main__':
         try:
             #print("[INFO] immagine utilizzabile: ", name)
             if name not in val_ds:
-                if os.path.exists(name) and row[1] != 0:
+                if os.path.exists(name):
                     img = cv2.imread(name, 0) 
                     img = cv2.resize(img, (ISIZE, ISIZE))
                     img = np.expand_dims(img, axis=-1)
                     x_test.append(img/255.)
-                    y = row[1] - 1
+                    if row[1] == 2:
+                        y = 1
+                    else:
+                        y = row[1]
                     y_test.append(y)
                     filename.append(name)
                     # gradcam_main(model, img, name.split('/')[-1], row[1])
@@ -81,28 +84,29 @@ if __name__=='__main__':
             continue
     x_test = np.array(x_test)
     
+    # y_true = np.array(tf.keras.utils.to_categorical(y_test, 2))
     y_true = np.array(y_test)
     print(np.shape(x_test))
     print("lettura DS finita")
     y_pred = []
     scores = []
 
-    # predictions = model.predict(x_test, verbose=1, batch_size=1)
-    # for prediction in tqdm(predictions):
-    #     classes = np.argmax(prediction)
-    #     prob = prediction[classes]
-    #     y_pred.append(classes)
-    #     scores.append(prediction)
-    # y_pred = np.array(y_pred)
-    loss, acc = model.evaluate(x_test, y_true)
-    print(loss, acc)
-    # print("[INFO] MODEL NAME: ", model_name)
-    # test_acc = sum(y_pred == y_true) / len(y_true)
-    # print("[INFO] normal accuracy: ")
-    # print(test_acc)
+    predictions = model.predict(x_test, verbose=1, batch_size=1)
+    for prediction in tqdm(predictions):
+        classes = np.argmax(prediction)
+        prob = prediction[classes]
+        y_pred.append(classes)
+        scores.append(prediction)
+    y_pred = np.array(y_pred)
+    # loss, acc = model.evaluate(x_test, y_true)
+    # print(loss, acc)
+    print("[INFO] MODEL NAME: ", model_name)
+    test_acc = sum(y_pred == y_true) / len(y_true)
+    print("[INFO] normal accuracy: ")
+    print(test_acc)
    
-    # confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
-    # print("Confusion matrix:\n",confusion_mtx)
+    confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
+    print("Confusion matrix:\n",confusion_mtx)
     
     # target= ['normal', 'common', 'covid']
     
@@ -122,6 +126,6 @@ if __name__=='__main__':
     # # pr_display.plot(ax=ax2)
     # plt.show()
 
-    # # result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true})
-    # # result.to_csv('result_3_class.csv')
+    result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true, 'prob_0': predictions[0], 'prob_1': predictions[1]})
+    result.to_csv('result_2_class.csv')
 
