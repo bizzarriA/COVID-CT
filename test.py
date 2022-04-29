@@ -108,17 +108,17 @@ if __name__=='__main__':
     confusion_mtx = tf.math.confusion_matrix(y_true, y_pred)
     print("Confusion matrix:\n",confusion_mtx)
     
-    # target= ['normal', 'common', 'covid']
+    target= ['normal', 'pneumonia']
     
-    # # set plot figure size
-    # fig, c_ax = plt.subplots(1,1, figsize = (12, 8))
+    # set plot figure size
+    fig, c_ax = plt.subplots(1,1, figsize = (12, 8))
     
-    # print('ROC AUC score:', multiclass_roc_auc_score(y_true, y_pred))
+    print('ROC AUC score:', multiclass_roc_auc_score(y_true, y_pred))
 
-    # c_ax.legend()
-    # c_ax.set_xlabel('False Positive Rate')
-    # c_ax.set_ylabel('True Positive Rate')
-    # plt.show()
+    c_ax.legend()
+    c_ax.set_xlabel('False Positive Rate')
+    c_ax.set_ylabel('True Positive Rate')
+    plt.savefig('ROC_AUC.png')
     # pr_display = multiclass_precision_recall_score(y_true, y_pred)
     # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
 
@@ -126,6 +126,6 @@ if __name__=='__main__':
     # # pr_display.plot(ax=ax2)
     # plt.show()
 
-    result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true, 'prob_0': predictions[0], 'prob_1': predictions[1]})
-    result.to_csv('result_2_class.csv')
+    # result = pd.DataFrame({'filename': filename, 'y_pred':y_pred, 'y_true':y_true, 'prob_0': predictions[0], 'prob_1': predictions[1]})
+    # result.to_csv('result_2_class.csv')
 
