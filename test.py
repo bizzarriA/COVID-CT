@@ -113,8 +113,14 @@ if __name__=='__main__':
     # set plot figure size
     fig, c_ax = plt.subplots(1,1, figsize = (12, 8))
     
-    print('ROC AUC score:', multiclass_roc_auc_score(y_true, y_pred))
-
+    #print('ROC AUC score:', multiclass_roc_auc_score(y_true, y_pred))
+    try:
+        roc_auc = roc_auc_score(y_true, y_pred)
+    except:
+        roc_auc = roc_auc_score(y_true, y_pred, multi_class='ovr')
+    print(roc_auc)
+    fpr, tpr, _ = roc_curve(y_test, y_pred)
+    c_ax.plot(fpr, tpr, label = '(AUC:%0.2f)'  %  auc(fpr, tpr)) 
     c_ax.legend()
     c_ax.set_xlabel('False Positive Rate')
     c_ax.set_ylabel('True Positive Rate')
